@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 17 (Export & Genially)</title>
+    <title>Spiders Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
@@ -12,7 +12,7 @@
         .tabs { display: flex; background: #1a1a20; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; flex-shrink: 0; }
         .tab-btn { flex: 1 1 30%; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; text-transform: uppercase; }
         .tab-btn:hover { color: white; } .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #22222b;}
-        .tab-export-btn { color: #ff00cc; } /* Выделяем вкладку экспорта */
+        .tab-export-btn { color: #ff00cc; }
         
         .tab-content { flex: 1; padding: 20px; display: none; } .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; } .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #bbb; }
@@ -28,7 +28,6 @@
         
         .warning-text { color: white; font-size: 14px; font-weight: bold; margin-top: 10px; display: none; background: var(--danger); padding: 10px; border-radius: 4px; text-align: center; box-shadow: 0 0 10px var(--danger);}
         
-        /* Стили для кнопок копирования */
         .copy-btn { background: #222; color: var(--primary); border: 1px solid var(--primary); padding: 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; text-transform: uppercase; width: 100%; margin-top: 10px; font-family: 'Orbitron', sans-serif;}
         .copy-btn:hover { background: rgba(0, 255, 204, 0.1); box-shadow: 0 0 10px var(--primary); }
         .copy-btn.copied { background: var(--primary); color: #000; }
@@ -46,6 +45,12 @@
 
         .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
         .modal-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; }
+
+        /* МАГИЯ ИГРОВОГО РЕЖИМА: СКРЫВАЕМ РЕДАКТОР, РАСТЯГИВАЕМ ИГРУ */
+        body.player-mode .sidebar { display: none !important; }
+        body.player-mode .preview-header { display: none !important; }
+        body.player-mode .game-frame-container { padding: 0 !important; }
+        body.player-mode .game-frame { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; }
     </style>
 </head>
 <body>
@@ -162,20 +167,19 @@ We ___ pizza for dinner. ate|eat</textarea>
 
         <div id="tab-export" class="tab-content">
             <h3>Вставка в Genially (Iframe)</h3>
-            <div class="hint-text">Этот код оптимизирован для Genially. Скопируйте его и вставьте через инструмент: <b>Insert -> Other -> Iframe</b>.</div>
+            <div class="hint-text">Этот код готов для вставки! В нем скрыт редактор, и игра будет на весь экран. Вставьте в Genially через <b>Insert -> Other -> Iframe</b>.</div>
             <div class="form-group" style="margin-top: 15px;">
-                <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text;"><iframe src="https://oksanabashlykova10-eng.github.io/spiders/" style="width: 100%; height: 100%; border: none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe></textarea>
+                <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text;"></textarea>
                 <button class="copy-btn" onclick="copyToClipboard('export_iframe', this)">Скопировать код iframe</button>
             </div>
 
             <h3 style="margin-top: 30px;">Прямая ссылка (URL)</h3>
-            <div class="hint-text">Ссылка на вашу игру, размещенную на GitHub. Можно отправлять напрямую ученикам.</div>
+            <div class="hint-text">Ссылка на вашу сгенерированную игру. Отправьте ее ученикам — они увидят только игру.</div>
             <div class="form-group" style="margin-top: 15px;">
-                <input type="text" id="export_link" value="https://oksanabashlykova10-eng.github.io/spiders/" readonly style="cursor: text;">
+                <input type="text" id="export_link" readonly style="cursor: text;">
                 <button class="copy-btn" style="color: #ff00cc; border-color: #ff00cc;" onclick="copyToClipboard('export_link', this)">Скопировать ссылку</button>
             </div>
         </div>
-
     </div>
 
     <div class="preview-area">
@@ -224,38 +228,41 @@ We ___ pizza for dinner. ate|eat</textarea>
         let gameState = {
             mode: 'game', questions: [], currentQ: 0, lives: 3, 
             timeRemaining: 60, lastTime: performance.now(),
-            spiders: [], direction: 1, containersFilled: 0, loseReason: 'health',
-            orbitPenalty: 0 
+            spiders: [], direction: 1, containersFilled: 0, loseReason: 'health', orbitPenalty: 0 
         };
+
+        // --- ГЕНЕРАТОР ШИФРА ДЛЯ ЭКСПОРТА ---
+        function exportGame() {
+            let config = {};
+            document.querySelectorAll('.sidebar input, .sidebar textarea, .sidebar select').forEach(el => {
+                if (el.id && !el.id.startsWith('file_')) {
+                    config[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+                }
+            });
+            
+            let encoded = btoa(encodeURIComponent(JSON.stringify(config)));
+            let baseUrl = window.location.href.split('?')[0]; // берет вашу ссылку с github
+            let finalUrl = baseUrl + "?play=" + encoded;
+            
+            document.getElementById('export_link').value = finalUrl;
+            document.getElementById('export_iframe').value = `<iframe src="${finalUrl}" style="width: 100%; height: 100%; border: none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
+        }
 
         function openTab(btn, tabName) {
             document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
             document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
             document.getElementById(tabName).style.display = "block";
             btn.classList.add("active");
+            if (tabName === 'tab-export') exportGame();
         }
 
-        // --- ФУНКЦИЯ КОПИРОВАНИЯ В БУФЕР ОБМЕНА ---
         function copyToClipboard(elementId, btn) {
             const el = document.getElementById(elementId);
-            el.select();
-            el.setSelectionRange(0, 99999); // Для мобильных устройств
+            el.select(); el.setSelectionRange(0, 99999);
             document.execCommand("copy");
-            
             const originalText = btn.innerText;
-            const originalColor = btn.style.color;
-            const originalBorder = btn.style.borderColor;
-
-            btn.innerText = "✓ Скопировано!";
-            btn.classList.add("copied");
-            btn.style.color = "#000";
-            
-            setTimeout(() => {
-                btn.innerText = originalText;
-                btn.classList.remove("copied");
-                btn.style.color = originalColor;
-                btn.style.borderColor = originalBorder;
-            }, 2000);
+            btn.innerText = "✓ СКОПИРОВАНО!"; btn.classList.add("copied");
+            setTimeout(() => { btn.innerText = originalText; btn.classList.remove("copied"); }, 2000);
         }
 
         function playSwoosh() {
@@ -265,20 +272,9 @@ We ___ pizza for dinner. ate|eat</textarea>
                 const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; 
-
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.setValueAtTime(400, ctx.currentTime);
-                filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.1); 
-                filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
-
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0, ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(1.5, ctx.currentTime + 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-
+                const noise = ctx.createBufferSource(); noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(400, ctx.currentTime); filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.1); filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
+                const gain = ctx.createGain(); gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(1.5, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
                 noise.start(); noise.stop(ctx.currentTime + 0.4);
             } catch(e) {}
@@ -287,38 +283,23 @@ We ___ pizza for dinner. ate|eat</textarea>
         function playError() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc1 = ctx.createOscillator();
-                const osc2 = ctx.createOscillator();
-                const gain = ctx.createGain();
+                const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator(); const gain = ctx.createGain();
                 osc1.type = 'square'; osc2.type = 'sawtooth';
-                osc1.frequency.setValueAtTime(100, ctx.currentTime);
-                osc1.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.2);
-                osc2.frequency.setValueAtTime(110, ctx.currentTime);
-                osc2.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                osc1.frequency.setValueAtTime(100, ctx.currentTime); osc1.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.2);
+                osc2.frequency.setValueAtTime(110, ctx.currentTime); osc2.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
                 osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
-                osc1.start(); osc2.start();
-                osc1.stop(ctx.currentTime + 0.2); osc2.stop(ctx.currentTime + 0.2);
+                osc1.start(); osc2.start(); osc1.stop(ctx.currentTime + 0.2); osc2.stop(ctx.currentTime + 0.2);
             } catch(e) {}
         }
 
         function playWinSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.connect(gain); gain.connect(ctx.destination);
+                const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.connect(gain); gain.connect(ctx.destination);
                 const now = ctx.currentTime;
-                osc.frequency.setValueAtTime(261.63, now); // C4
-                osc.frequency.setValueAtTime(329.63, now + 0.1); // E4
-                osc.frequency.setValueAtTime(392.00, now + 0.2); // G4
-                osc.frequency.setValueAtTime(523.25, now + 0.3); // C5
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
-                gain.gain.setValueAtTime(0.3, now + 0.4);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc.frequency.setValueAtTime(261.63, now); osc.frequency.setValueAtTime(329.63, now + 0.1); osc.frequency.setValueAtTime(392.00, now + 0.2); osc.frequency.setValueAtTime(523.25, now + 0.3);
+                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.setValueAtTime(0.3, now + 0.4); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
                 osc.start(now); osc.stop(now + 0.8);
             } catch(e) {}
         }
@@ -326,25 +307,15 @@ We ___ pizza for dinner. ate|eat</textarea>
         function playLoseSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.connect(gain); gain.connect(ctx.destination);
+                const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sawtooth'; osc.connect(gain); gain.connect(ctx.destination);
                 const now = ctx.currentTime;
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.8);
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.3, now + 0.1);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.8);
+                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
                 osc.start(now); osc.stop(now + 0.8);
             } catch(e) {}
         }
 
-        function formatTime(sec) {
-            let m = Math.floor(sec / 60);
-            let s = Math.floor(sec % 60);
-            return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
-        }
+        function formatTime(sec) { let m = Math.floor(sec / 60); let s = Math.floor(sec % 60); return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s); }
 
         function setPreviewMode(mode) {
             const oldMode = gameState.mode;
@@ -355,9 +326,7 @@ We ___ pizza for dinner. ate|eat</textarea>
                 if(b.dataset.mode === mode) b.classList.add('active'); else b.classList.remove('active');
             });
             
-            if(mode === 'game') fullGameReset();
-            else renderHUD(); 
-
+            if(mode === 'game') fullGameReset(); else renderHUD(); 
             if (mode === 'win' && oldMode === 'game') playWinSound();
             if (mode.startsWith('lose') && oldMode === 'game') playLoseSound();
         }
@@ -522,8 +491,7 @@ We ___ pizza for dinner. ate|eat</textarea>
                 wrap.onclick = () => handleSpiderClick(i, answers[i].isCorrect);
 
                 gameState.spiders.push({
-                    el: wrap, isDead: false, isAnimating: false,
-                    angle: (Math.PI*2/spCount)*i, 
+                    el: wrap, isDead: false, isAnimating: false, angle: (Math.PI*2/spCount)*i, 
                     radius: isBounce ? 0 : Math.max(30, parseFloat(document.getElementById('char_sp_orbit').value) - gameState.orbitPenalty)
                 });
             }
@@ -577,9 +545,7 @@ We ___ pizza for dinner. ate|eat</textarea>
                     playError(); 
                     gameState.lives--;
                     gameState.direction *= -1; 
-                    
                     gameState.orbitPenalty += 35;
-                    
                     updateHeartsUI(); 
                     sp.isDead = true; 
                     
@@ -594,9 +560,7 @@ We ___ pizza for dinner. ate|eat</textarea>
                     }
                     sp.el.style.opacity = '0';
                     
-                    setTimeout(() => {
-                        if(gameState.lives <= 0) setPreviewMode('lose_health');
-                    }, 500);
+                    setTimeout(() => { if(gameState.lives <= 0) setPreviewMode('lose_health'); }, 500);
                 }
             });
         }
@@ -617,12 +581,13 @@ We ___ pizza for dinner. ate|eat</textarea>
                 const timerEl = document.getElementById('hud-timer-text');
                 if(timerEl && timerEl.innerText !== timeStr) timerEl.innerText = timeStr;
 
-                const cx = 960 * (document.getElementById('char_ff_x').value / 100);
-                const cy = 540 * (document.getElementById('char_ff_y').value / 100);
+                // Используем реальные размеры контейнера, чтобы всё работало даже когда игра на 100% экрана!
+                const frameEl = document.getElementById('game-frame');
+                const cx = frameEl.clientWidth * (document.getElementById('char_ff_x').value / 100);
+                const cy = frameEl.clientHeight * (document.getElementById('char_ff_y').value / 100);
                 
                 const baseOrbit = parseFloat(document.getElementById('char_sp_orbit').value);
                 const targetOrbit = Math.max(30, baseOrbit - gameState.orbitPenalty);
-                
                 const speed = (parseFloat(document.getElementById('char_sp_speed').value) / 1000) * gameState.direction;
                 
                 const ff = document.getElementById('preview-firefly');
@@ -630,9 +595,7 @@ We ___ pizza for dinner. ate|eat</textarea>
 
                 gameState.spiders.forEach(s => {
                     if(s.isAnimating || s.isDead) return;
-                    
                     s.radius += (targetOrbit - s.radius) * 0.1; 
-                    
                     s.angle += speed * (dt*60);
                     s.el.style.left = (cx + s.radius * Math.cos(s.angle)) + 'px';
                     s.el.style.top = (cy + s.radius * Math.sin(s.angle)) + 'px';
@@ -642,7 +605,34 @@ We ___ pizza for dinner. ate|eat</textarea>
             requestAnimationFrame(gameLoop);
         }
 
-        window.onload = () => { fullGameReset(); gameLoop(); };
+        // --- МАГИЯ ЗАПУСКА: ПРОВЕРЯЕМ, ЕСТЬ ЛИ ШИФР В ССЫЛКЕ ---
+        window.onload = () => { 
+            const params = new URLSearchParams(window.location.search);
+            const playData = params.get('play');
+            
+            if (playData) {
+                // МЫ В РЕЖИМЕ ИГРЫ (По ссылке из Экспорта)
+                document.body.classList.add('player-mode'); // Применяет стили, скрывающие редактор
+                try {
+                    // Расшифровываем настройки
+                    const config = JSON.parse(decodeURIComponent(atob(playData)));
+                    for (let key in config) {
+                        let el = document.getElementById(key);
+                        if (el) {
+                            if (el.type === 'checkbox') el.checked = config[key];
+                            else el.value = config[key];
+                        }
+                    }
+                } catch (e) { console.error("Ошибка загрузки настроек", e); }
+                
+                fullGameReset();
+                setPreviewMode('start'); // Запускаем сразу модальное окно старта
+            } else {
+                // МЫ В РЕЖИМЕ РЕДАКТОРА
+                fullGameReset(); 
+            }
+            gameLoop(); 
+        };
     </script>
 </body>
 </html>
