@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 21 (Custom Sounds)</title>
+    <title>Spiders Game Editor - Версия 22 (Compressed & Standalone Export)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; overflow: hidden; }
@@ -46,6 +47,7 @@
         .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
         .modal-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; }
 
+        /* МАГИЯ ИГРОВОГО РЕЖИМА */
         body.player-mode .sidebar { display: none !important; }
         body.player-mode .preview-header { display: none !important; }
         body.player-mode .game-frame-container { padding: 0 !important; }
@@ -174,7 +176,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             </div>
 
             <h3 style="margin-top:25px;">Свои звуки (Ссылки на MP3/WAV)</h3>
-            <div class="hint-text">Чтобы звуки работали у учеников по ссылке, используйте прямые URL аудиофайлов. Если поле пустое — играет стандартный звук.</div>
+            <div class="hint-text">Чтобы звуки работали по ссылке, используйте прямые URL. Если поле пустое — играет стандартный звук.</div>
             <div class="form-group" style="margin-top:15px;">
                 <label style="color:#00ffcc;">ПРАВИЛЬНЫЙ ответ (URL):</label>
                 <input type="text" id="snd_url_right" placeholder="https://..." oninput="fullGameReset()">
@@ -214,14 +216,17 @@ We ___ pizza for dinner. ate|eat</textarea>
 
         <div id="tab-export" class="tab-content">
             <h3>Вставка в Genially (Iframe)</h3>
-            <div class="hint-text">Этот код готов для вставки! В нем скрыт редактор, и игра будет на весь экран. Вставьте в Genially через <b>Insert -> Other -> Iframe</b>.</div>
+            <div class="hint-text" style="color: #00ffcc; border-left-color: #00ffcc;">Код сжат с помощью LZ-алгоритма. Ссылка стала короче в 3 раза специально для Genially! Вставьте через <b>Insert -> Other -> Iframe</b>.</div>
             <div class="form-group" style="margin-top: 15px;">
                 <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text;"></textarea>
                 <button class="copy-btn" onclick="copyToClipboard('export_iframe', this)">Скопировать код iframe</button>
             </div>
 
-            <h3 style="margin-top: 30px;">Прямая ссылка (URL)</h3>
-            <div class="hint-text">Ссылка на вашу сгенерированную игру. Отправьте ее ученикам — они увидят только игру.</div>
+            <h3 style="margin-top: 30px;">Альтернатива: Отдельный файл</h3>
+            <div class="hint-text" style="color: #ffaa00; border-left-color: #ffaa00;">Если Genially всё ещё жалуется на длину (из-за огромного количества вопросов), просто скачайте игру отдельным файлом, закиньте её к себе на GitHub и вставляйте прямую короткую ссылку на него!</div>
+            <button class="copy-btn" style="background: var(--primary); color: #000; margin-top: 10px;" onclick="downloadHTML()">💾 Скачать HTML-файл игры</button>
+
+            <h3 style="margin-top: 30px;">Сгенерированная ссылка (URL)</h3>
             <div class="form-group" style="margin-top: 15px;">
                 <input type="text" id="export_link" readonly style="cursor: text;">
                 <button class="copy-btn" style="color: #ff00cc; border-color: #ff00cc;" onclick="copyToClipboard('export_link', this)">Скопировать ссылку</button>
@@ -285,20 +290,45 @@ We ___ pizza for dinner. ate|eat</textarea>
             renderHUD();
         }
 
-        function exportGame() {
+        // === ГЕНЕРАТОРЫ ЭКСПОРТА ===
+
+        function getConfigObject() {
             let config = {};
             document.querySelectorAll('.sidebar input, .sidebar textarea, .sidebar select').forEach(el => {
                 if (el.id && !el.id.startsWith('file_')) {
                     config[el.id] = el.type === 'checkbox' ? el.checked : el.value;
                 }
             });
+            return config;
+        }
+
+        function exportGame() {
+            let config = getConfigObject();
             
-            let encoded = btoa(encodeURIComponent(JSON.stringify(config)));
+            // МАГИЯ СЖАТИЯ: Используем LZString чтобы ссылка была короткой
+            let encoded = LZString.compressToEncodedURIComponent(JSON.stringify(config));
             let baseUrl = window.location.href.split('?')[0]; 
-            let finalUrl = baseUrl + "?play=" + encoded;
+            let finalUrl = baseUrl + "?zplay=" + encoded;
             
             document.getElementById('export_link').value = finalUrl;
             document.getElementById('export_iframe').value = `<iframe src="${finalUrl}" style="width: 100%; height: 100%; border: none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
+        }
+
+        // СКАЧИВАНИЕ ГОТОВОГО ФАЙЛА
+        function downloadHTML() {
+            let config = getConfigObject();
+            let htmlContent = "<!DOCTYPE html>\n<html lang=\"ru\">\n" + document.documentElement.innerHTML + "\n</html>";
+            
+            // Внедряем настройки прямо в скачанный файл, чтобы он работал автономно!
+            htmlContent = htmlContent.replace('<head>', '<head>\n<script>window.STANDALONE_CONFIG = ' + JSON.stringify(config) + ';\x3C/script>');
+            
+            let blob = new Blob([htmlContent], {type: 'text/html;charset=utf-8'});
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'my_spiders_game.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function openTab(btn, tabName) {
@@ -318,7 +348,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             setTimeout(() => { btn.innerText = originalText; btn.classList.remove("copied"); }, 2000);
         }
 
-        // --- УМНЫЙ КОНТРОЛЬ ЗВУКОВ (URL ИЛИ СТАНДАРТ) ---
+        // --- ЗВУКИ ---
         const getVol = () => {
             const elEn = document.getElementById('fx_sound_enable');
             const elVol = document.getElementById('fx_volume');
@@ -344,7 +374,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             }
         }
 
-        // Базовые звуки-синтезаторы (если URL не указан)
         function synthSwoosh() {
             const vol = getVol(); if (vol <= 0) return;
             try {
@@ -522,7 +551,9 @@ We ___ pizza for dinner. ate|eat</textarea>
             const pl_w = document.getElementById('ui_plate_width').value;
             const pl_h = document.getElementById('ui_plate_height').value;
             const plate = document.createElement('div');
-            plate.style.cssText = `position:absolute; width:${pl_w}px; height:${pl_h}px; left:calc(${document.getElementById('ui_plate_x').value}% - ${pl_w/2}px); top:calc(${document.getElementById('ui_plate_y').value}% - ${pl_h/2}px); display:flex; justify-content:center; align-items:center; text-align:center; z-index:5;`;
+            // Установили pointer-events: none; чтобы плашка вопроса никогда не перекрывала пауков при клике
+            plate.style.cssText = `position:absolute; width:${pl_w}px; height:${pl_h}px; left:calc(${document.getElementById('ui_plate_x').value}% - ${pl_w/2}px); top:calc(${document.getElementById('ui_plate_y').value}% - ${pl_h/2}px); display:flex; justify-content:center; align-items:center; text-align:center; z-index:5; pointer-events: none;`;
+            
             if(document.getElementById('ui_plate_type').value === 'image') {
                 plate.style.background = `url('${ASSETS.plate}') center/100% 100% no-repeat`;
             } else {
@@ -534,7 +565,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             const ff_size = document.getElementById('char_ff_size').value;
             const ff = document.createElement('div');
             ff.id = 'preview-firefly';
-            ff.style.cssText = `position:absolute; width:${ff_size}px; height:${ff_size}px; left:calc(${document.getElementById('char_ff_x').value}% - ${ff_size/2}px); top:calc(${document.getElementById('char_ff_y').value}% - ${ff_size/2}px); background:url('${ASSETS.firefly}') center/contain no-repeat; filter: drop-shadow(0 0 15px ${document.getElementById('char_ff_glowColor').value}); z-index:10;`;
+            ff.style.cssText = `position:absolute; width:${ff_size}px; height:${ff_size}px; left:calc(${document.getElementById('char_ff_x').value}% - ${ff_size/2}px); top:calc(${document.getElementById('char_ff_y').value}% - ${ff_size/2}px); background:url('${ASSETS.firefly}') center/contain no-repeat; filter: drop-shadow(0 0 15px ${document.getElementById('char_ff_glowColor').value}); z-index:10; pointer-events: none;`;
             gLayer.appendChild(ff);
 
             if(gameState.mode !== 'game') {
@@ -553,10 +584,10 @@ We ___ pizza for dinner. ate|eat</textarea>
 
                 mLayer.style.cssText = `position:absolute; width:100%; height:100%; top:0; left:0; background:rgba(0,0,0,0.6); z-index:200; display:flex; justify-content:center; align-items:center; pointer-events: auto;`;
                 const modal = document.createElement('div');
-                modal.style.cssText = `background:rgba(10,10,15,0.9); border:2px solid ${modalData.neon}; border-radius:20px; padding:30px 50px; text-align:center; box-shadow: 0 0 25px ${modalData.neon}; max-width: 450px; display:flex; flex-direction:column; gap:25px; align-items:center; backdrop-filter: blur(5px);`;
+                modal.style.cssText = `background:rgba(10,10,15,0.9); border:2px solid ${modalData.neon}; border-radius:20px; padding:30px 50px; text-align:center; box-shadow: 0 0 25px ${modalData.neon}; max-width: 450px; display:flex; flex-direction:column; gap:25px; align-items:center; backdrop-filter: blur(5px); pointer-events: auto;`;
                 modal.innerHTML = `
                     <div style="font-family:'Orbitron'; color:${modalData.color}; font-size:32px; text-transform:uppercase; text-shadow: 0 0 10px ${modalData.neon};">${modalData.text.replace(/\n/g, '<br>')}</div>
-                    <button class="modal-btn" style="--neon-color: ${modalData.neon}; background:transparent; color:white; border:2px solid ${modalData.neon}; padding:12px 30px; font-size:20px; font-family:'Orbitron'; border-radius:30px; cursor:pointer; font-weight:bold; box-shadow: 0 0 10px ${modalData.neon};" onclick="setPreviewMode('game')">${modalData.btn}</button>
+                    <button class="modal-btn" style="--neon-color: ${modalData.neon}; background:transparent; color:white; border:2px solid ${modalData.neon}; padding:12px 30px; font-size:20px; font-family:'Orbitron'; border-radius:30px; cursor:pointer; font-weight:bold; box-shadow: 0 0 10px ${modalData.neon}; pointer-events: auto;" onclick="setPreviewMode('game')">${modalData.btn}</button>
                 `;
                 mLayer.appendChild(modal);
             }
@@ -582,7 +613,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             for(let i=0; i<spCount; i++) {
                 let wrap = document.createElement('div');
                 wrap.className = `spider-wrapper ${evadeEffect}`;
-                wrap.style.cssText = `position:absolute; display:flex; flex-direction:column; align-items:center; z-index:20;`;
+                wrap.style.cssText = `position:absolute; display:flex; flex-direction:column; align-items:center; z-index:20; pointer-events: auto;`;
                 
                 let sp = document.createElement('div');
                 sp.style.cssText = `width:${spSize}px; height:${spSize}px; background:url('${ASSETS.spider}') center/contain no-repeat; filter: drop-shadow(0 0 ${document.getElementById('char_sp_glowSize').value}px ${document.getElementById('char_sp_glowColor').value});`;
@@ -712,21 +743,29 @@ We ___ pizza for dinner. ate|eat</textarea>
 
         window.onload = () => { 
             const params = new URLSearchParams(window.location.search);
-            const playData = params.get('play');
+            const playData = params.get('play');    // Старый формат
+            const zPlayData = params.get('zplay');  // Новый сжатый формат
             
-            if (playData) {
+            let config = null;
+
+            if (window.STANDALONE_CONFIG) {
+                // Если мы запустили скачанный HTML-файл
+                config = window.STANDALONE_CONFIG;
+            } else if (zPlayData) {
+                try { config = JSON.parse(LZString.decompressFromEncodedURIComponent(zPlayData)); } catch(e) {}
+            } else if (playData) {
+                try { config = JSON.parse(decodeURIComponent(atob(playData))); } catch(e) {}
+            }
+            
+            if (config) {
                 document.body.classList.add('player-mode'); 
-                try {
-                    const config = JSON.parse(decodeURIComponent(atob(playData)));
-                    for (let key in config) {
-                        let el = document.getElementById(key);
-                        if (el) {
-                            if (el.type === 'checkbox') el.checked = config[key];
-                            else el.value = config[key];
-                        }
+                for (let key in config) {
+                    let el = document.getElementById(key);
+                    if (el) {
+                        if (el.type === 'checkbox') el.checked = config[key];
+                        else el.value = config[key];
                     }
-                } catch (e) { console.error("Ошибка загрузки настроек", e); }
-                
+                }
                 if(typeof updateBgUI === 'function') updateBgUI();
                 fullGameReset();
                 setPreviewMode('start'); 
