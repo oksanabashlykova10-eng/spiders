@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 22 (Compressed & Standalone Export)</title>
+    <title>Spiders Game Editor - Версия 23 (100% Transparent Genially)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <style>
@@ -47,10 +47,12 @@
         .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
         .modal-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; }
 
-        /* МАГИЯ ИГРОВОГО РЕЖИМА */
+        /* МАГИЯ ИГРОВОГО РЕЖИМА И ПРОЗРАЧНОСТИ */
+        html.player-mode, body.player-mode { background: transparent !important; }
+        body.player-mode .preview-area { background: transparent !important; }
         body.player-mode .sidebar { display: none !important; }
         body.player-mode .preview-header { display: none !important; }
-        body.player-mode .game-frame-container { padding: 0 !important; }
+        body.player-mode .game-frame-container { padding: 0 !important; background: transparent !important; }
         body.player-mode .game-frame { width: 100vw !important; height: 100vh !important; border: none !important; border-radius: 0 !important; }
     </style>
 </head>
@@ -218,7 +220,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             <h3>Вставка в Genially (Iframe)</h3>
             <div class="hint-text" style="color: #00ffcc; border-left-color: #00ffcc;">Код сжат с помощью LZ-алгоритма. Ссылка стала короче в 3 раза специально для Genially! Вставьте через <b>Insert -> Other -> Iframe</b>.</div>
             <div class="form-group" style="margin-top: 15px;">
-                <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text;"></textarea>
+                <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text; background: #05080c; color: #00ffcc; border: 1px solid #00ffcc;"></textarea>
                 <button class="copy-btn" onclick="copyToClipboard('export_iframe', this)">Скопировать код iframe</button>
             </div>
 
@@ -290,8 +292,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             renderHUD();
         }
 
-        // === ГЕНЕРАТОРЫ ЭКСПОРТА ===
-
         function getConfigObject() {
             let config = {};
             document.querySelectorAll('.sidebar input, .sidebar textarea, .sidebar select').forEach(el => {
@@ -304,22 +304,19 @@ We ___ pizza for dinner. ate|eat</textarea>
 
         function exportGame() {
             let config = getConfigObject();
-            
-            // МАГИЯ СЖАТИЯ: Используем LZString чтобы ссылка была короткой
             let encoded = LZString.compressToEncodedURIComponent(JSON.stringify(config));
             let baseUrl = window.location.href.split('?')[0]; 
             let finalUrl = baseUrl + "?zplay=" + encoded;
             
             document.getElementById('export_link').value = finalUrl;
-            document.getElementById('export_iframe').value = `<iframe src="${finalUrl}" style="width: 100%; height: 100%; border: none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
+            
+            // ДОБАВЛЕНО: background: transparent; и allowtransparency="true"
+            document.getElementById('export_iframe').value = `<iframe src="${finalUrl}" style="width: 100%; height: 100%; border: none; background: transparent;" allowtransparency="true" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
         }
 
-        // СКАЧИВАНИЕ ГОТОВОГО ФАЙЛА
         function downloadHTML() {
             let config = getConfigObject();
             let htmlContent = "<!DOCTYPE html>\n<html lang=\"ru\">\n" + document.documentElement.innerHTML + "\n</html>";
-            
-            // Внедряем настройки прямо в скачанный файл, чтобы он работал автономно!
             htmlContent = htmlContent.replace('<head>', '<head>\n<script>window.STANDALONE_CONFIG = ' + JSON.stringify(config) + ';\x3C/script>');
             
             let blob = new Blob([htmlContent], {type: 'text/html;charset=utf-8'});
@@ -348,7 +345,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             setTimeout(() => { btn.innerText = originalText; btn.classList.remove("copied"); }, 2000);
         }
 
-        // --- ЗВУКИ ---
         const getVol = () => {
             const elEn = document.getElementById('fx_sound_enable');
             const elVol = document.getElementById('fx_volume');
@@ -359,19 +355,14 @@ We ___ pizza for dinner. ate|eat</textarea>
         function playSound(urlId, synthFallback) {
             const vol = getVol(); 
             if (vol <= 0) return;
-            
             const urlEl = document.getElementById(urlId);
             if (urlEl && urlEl.value.trim() !== '') {
                 try {
                     let audio = new Audio(urlEl.value.trim());
                     audio.volume = vol;
                     audio.play().catch(e => synthFallback()); 
-                } catch(e) {
-                    synthFallback();
-                }
-            } else {
-                synthFallback();
-            }
+                } catch(e) { synthFallback(); }
+            } else { synthFallback(); }
         }
 
         function synthSwoosh() {
@@ -551,7 +542,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             const pl_w = document.getElementById('ui_plate_width').value;
             const pl_h = document.getElementById('ui_plate_height').value;
             const plate = document.createElement('div');
-            // Установили pointer-events: none; чтобы плашка вопроса никогда не перекрывала пауков при клике
             plate.style.cssText = `position:absolute; width:${pl_w}px; height:${pl_h}px; left:calc(${document.getElementById('ui_plate_x').value}% - ${pl_w/2}px); top:calc(${document.getElementById('ui_plate_y').value}% - ${pl_h/2}px); display:flex; justify-content:center; align-items:center; text-align:center; z-index:5; pointer-events: none;`;
             
             if(document.getElementById('ui_plate_type').value === 'image') {
@@ -743,13 +733,12 @@ We ___ pizza for dinner. ate|eat</textarea>
 
         window.onload = () => { 
             const params = new URLSearchParams(window.location.search);
-            const playData = params.get('play');    // Старый формат
-            const zPlayData = params.get('zplay');  // Новый сжатый формат
+            const playData = params.get('play');    
+            const zPlayData = params.get('zplay');  
             
             let config = null;
 
             if (window.STANDALONE_CONFIG) {
-                // Если мы запустили скачанный HTML-файл
                 config = window.STANDALONE_CONFIG;
             } else if (zPlayData) {
                 try { config = JSON.parse(LZString.decompressFromEncodedURIComponent(zPlayData)); } catch(e) {}
@@ -758,7 +747,10 @@ We ___ pizza for dinner. ate|eat</textarea>
             }
             
             if (config) {
+                // ПРИМЕНЯЕМ РЕЖИМ ИГРОКА КО ВСЕМУ ДОКУМЕНТУ
+                document.documentElement.classList.add('player-mode');
                 document.body.classList.add('player-mode'); 
+                
                 for (let key in config) {
                     let el = document.getElementById(key);
                     if (el) {
