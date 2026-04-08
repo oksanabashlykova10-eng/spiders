@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 19 (Background Config)</title>
+    <title>Spiders Game Editor - Версия 20 (Sound Controls)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
@@ -46,7 +46,6 @@
         .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
         .modal-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; }
 
-        /* МАГИЯ ИГРОВОГО РЕЖИМА: СКРЫВАЕМ РЕДАКТОР, РАСТЯГИВАЕМ ИГРУ */
         body.player-mode .sidebar { display: none !important; }
         body.player-mode .preview-header { display: none !important; }
         body.player-mode .game-frame-container { padding: 0 !important; }
@@ -130,7 +129,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             <div class="form-group" id="bg_image_group" style="display:none;">
                 <label>Ссылка на картинку (URL):</label>
                 <input type="text" id="bg_image_url" placeholder="https://..." oninput="renderHUD()">
-                <div class="hint-text" style="margin-top:5px;">Для работы у учеников вставьте прямую ссылку на изображение (например, скопированную из Genially или ВКонтакте).</div>
+                <div class="hint-text" style="margin-top:5px;">Для работы у учеников вставьте прямую ссылку на изображение (например, скопированную из Genially).</div>
             </div>
 
             <h3>Позиции HUD (Сердечки и Таймер)</h3>
@@ -164,6 +163,16 @@ We ___ pizza for dinner. ate|eat</textarea>
             <div class="form-group flex-row"><label>Жизни (Кол-во):</label><input type="number" min="1" max="5" value="3" id="fx_lives" style="width: 60px;" oninput="fullGameReset()"></div>
             <div class="form-group flex-row"><label>Время (сек):</label><input type="number" min="10" max="300" value="60" id="fx_time" style="width: 80px;" oninput="fullGameReset()"></div>
             
+            <h3>Звуковые эффекты</h3>
+            <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
+                <input type="checkbox" id="fx_sound_enable" checked> 
+                <label style="margin:0; color:#00ffcc; font-weight: bold;">Включить звуки в игре</label>
+            </div>
+            <div class="form-group flex-row">
+                <label>Громкость:</label>
+                <input type="range" id="fx_volume" min="0" max="100" value="50">
+            </div>
+
             <h3>Анимации исчезновения</h3>
             <div class="form-group">
                 <label>Для ПРАВИЛЬНОГО паука:</label>
@@ -250,7 +259,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             spiders: [], direction: 1, containersFilled: 0, loseReason: 'health', orbitPenalty: 0 
         };
 
-        // --- УПРАВЛЕНИЕ UI ФОНА ---
         function updateBgUI() {
             const type = document.getElementById('bg_type').value;
             document.getElementById('bg_color_group').style.display = type === 'color' ? 'flex' : 'none';
@@ -291,7 +299,16 @@ We ___ pizza for dinner. ate|eat</textarea>
             setTimeout(() => { btn.innerText = originalText; btn.classList.remove("copied"); }, 2000);
         }
 
+        // --- КОНТРОЛЬ ЗВУКА ---
+        const getVol = () => {
+            const elEn = document.getElementById('fx_sound_enable');
+            const elVol = document.getElementById('fx_volume');
+            if (elEn && !elEn.checked) return 0;
+            return elVol ? (elVol.value / 100) : 0.5;
+        };
+
         function playSwoosh() {
+            const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const bufferSize = ctx.sampleRate * 0.4; 
@@ -300,43 +317,46 @@ We ___ pizza for dinner. ate|eat</textarea>
                 for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; 
                 const noise = ctx.createBufferSource(); noise.buffer = buffer;
                 const filter = ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(400, ctx.currentTime); filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.1); filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
-                const gain = ctx.createGain(); gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(1.5, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                const gain = ctx.createGain(); gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(1.5 * vol, ctx.currentTime + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
                 noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
                 noise.start(); noise.stop(ctx.currentTime + 0.4);
             } catch(e) {}
         }
 
         function playError() {
+            const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc1 = ctx.createOscillator(); const osc2 = ctx.createOscillator(); const gain = ctx.createGain();
                 osc1.type = 'square'; osc2.type = 'sawtooth';
                 osc1.frequency.setValueAtTime(100, ctx.currentTime); osc1.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.2);
                 osc2.frequency.setValueAtTime(110, ctx.currentTime); osc2.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.3, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3 * vol, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
                 osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
                 osc1.start(); osc2.start(); osc1.stop(ctx.currentTime + 0.2); osc2.stop(ctx.currentTime + 0.2);
             } catch(e) {}
         }
 
         function playWinSound() {
+            const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sine'; osc.connect(gain); gain.connect(ctx.destination);
                 const now = ctx.currentTime;
                 osc.frequency.setValueAtTime(261.63, now); osc.frequency.setValueAtTime(329.63, now + 0.1); osc.frequency.setValueAtTime(392.00, now + 0.2); osc.frequency.setValueAtTime(523.25, now + 0.3);
-                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.05); gain.gain.setValueAtTime(0.3, now + 0.4); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3 * vol, now + 0.05); gain.gain.setValueAtTime(0.3 * vol, now + 0.4); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
                 osc.start(now); osc.stop(now + 0.8);
             } catch(e) {}
         }
 
         function playLoseSound() {
+            const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sawtooth'; osc.connect(gain); gain.connect(ctx.destination);
                 const now = ctx.currentTime;
                 osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.8);
-                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3, now + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(0.3 * vol, now + 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
                 osc.start(now); osc.stop(now + 0.8);
             } catch(e) {}
         }
@@ -389,7 +409,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             const mLayer = document.getElementById('modal-layer');
             const frameEl = document.getElementById('game-frame');
             
-            // ПРИМЕНЯЕМ НАСТРОЙКИ ФОНА
             const bgType = document.getElementById('bg_type') ? document.getElementById('bg_type').value : 'transparent';
             if(bgType === 'transparent') {
                 frameEl.style.background = 'transparent';
