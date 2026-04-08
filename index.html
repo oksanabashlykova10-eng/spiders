@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 16 (Fonts & Shrinking Orbit)</title>
+    <title>Spiders Game Editor - Версия 17 (Export & Genially)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
@@ -12,6 +12,8 @@
         .tabs { display: flex; background: #1a1a20; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; flex-shrink: 0; }
         .tab-btn { flex: 1 1 30%; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; text-transform: uppercase; }
         .tab-btn:hover { color: white; } .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #22222b;}
+        .tab-export-btn { color: #ff00cc; } /* Выделяем вкладку экспорта */
+        
         .tab-content { flex: 1; padding: 20px; display: none; } .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; } .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #bbb; }
         input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px; border-radius: 4px; background: #111; border: 1px solid #444; color: white; box-sizing: border-box; font-family: inherit; }
@@ -26,6 +28,11 @@
         
         .warning-text { color: white; font-size: 14px; font-weight: bold; margin-top: 10px; display: none; background: var(--danger); padding: 10px; border-radius: 4px; text-align: center; box-shadow: 0 0 10px var(--danger);}
         
+        /* Стили для кнопок копирования */
+        .copy-btn { background: #222; color: var(--primary); border: 1px solid var(--primary); padding: 12px; border-radius: 5px; cursor: pointer; transition: 0.3s; font-weight: bold; text-transform: uppercase; width: 100%; margin-top: 10px; font-family: 'Orbitron', sans-serif;}
+        .copy-btn:hover { background: rgba(0, 255, 204, 0.1); box-shadow: 0 0 10px var(--primary); }
+        .copy-btn.copied { background: var(--primary); color: #000; }
+
         .preview-area { flex: 1; display: flex; flex-direction: column; background: #0a0a0f; position: relative; }
         .preview-header { padding: 15px; background: #1a1a20; display: flex; gap: 10px; justify-content: center; border-bottom: 1px solid var(--border-color); z-index: 200; flex-shrink: 0;}
         .preview-btn { background: #222; color: #888; border: 1px solid #444; padding: 8px 15px; border-radius: 20px; cursor: pointer; transition: 0.2s; font-weight: bold; text-transform: uppercase; font-size: 12px; }
@@ -38,11 +45,7 @@
         .spider-evade:hover { transform: scale(0.8) translate(15px, 15px) !important; filter: brightness(1.5); z-index: 50 !important; }
 
         .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
-        .modal-btn:hover { 
-            background: rgba(255,255,255,0.1) !important; 
-            transform: scale(1.05); 
-            box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; 
-        }
+        .modal-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; }
     </style>
 </head>
 <body>
@@ -53,6 +56,7 @@
             <button class="tab-btn" onclick="openTab(this, 'tab-chars')">Персонажи</button>
             <button class="tab-btn" onclick="openTab(this, 'tab-texts')">Интерфейс</button>
             <button class="tab-btn" onclick="openTab(this, 'tab-effects')">Эффекты/Звук</button>
+            <button class="tab-btn tab-export-btn" onclick="openTab(this, 'tab-export')">Экспорт 🚀</button>
         </div>
 
         <div id="tab-questions" class="tab-content active">
@@ -155,6 +159,23 @@ We ___ pizza for dinner. ate|eat</textarea>
                 </select>
             </div>
         </div>
+
+        <div id="tab-export" class="tab-content">
+            <h3>Вставка в Genially (Iframe)</h3>
+            <div class="hint-text">Этот код оптимизирован для Genially. Скопируйте его и вставьте через инструмент: <b>Insert -> Other -> Iframe</b>.</div>
+            <div class="form-group" style="margin-top: 15px;">
+                <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text;"><iframe src="https://oksanabashlykova10-eng.github.io/spiders/" style="width: 100%; height: 100%; border: none;" allow="autoplay; fullscreen" allowfullscreen="true"></iframe></textarea>
+                <button class="copy-btn" onclick="copyToClipboard('export_iframe', this)">Скопировать код iframe</button>
+            </div>
+
+            <h3 style="margin-top: 30px;">Прямая ссылка (URL)</h3>
+            <div class="hint-text">Ссылка на вашу игру, размещенную на GitHub. Можно отправлять напрямую ученикам.</div>
+            <div class="form-group" style="margin-top: 15px;">
+                <input type="text" id="export_link" value="https://oksanabashlykova10-eng.github.io/spiders/" readonly style="cursor: text;">
+                <button class="copy-btn" style="color: #ff00cc; border-color: #ff00cc;" onclick="copyToClipboard('export_link', this)">Скопировать ссылку</button>
+            </div>
+        </div>
+
     </div>
 
     <div class="preview-area">
@@ -182,7 +203,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             timer: "https://img.genially.com/67961b32a116fb001568a75e/23778d05-b6ba-40e3-bda3-d568bf98556e.png"
         };
 
-        // ВЕРНУЛ ВСЕ ШРИФТЫ В ВЫПАДАЮЩИЕ СПИСКИ
         const fontOptions = `
             <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial (Стандарт)</option>
             <option value="'Orbitron', sans-serif" style="font-family: 'Orbitron', sans-serif;" selected>Orbitron (Техно)</option>
@@ -205,7 +225,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             mode: 'game', questions: [], currentQ: 0, lives: 3, 
             timeRemaining: 60, lastTime: performance.now(),
             spiders: [], direction: 1, containersFilled: 0, loseReason: 'health',
-            orbitPenalty: 0 // <--- НОВЫЙ ПАРАМЕТР ШТРАФА ОРБИТЫ
+            orbitPenalty: 0 
         };
 
         function openTab(btn, tabName) {
@@ -215,7 +235,29 @@ We ___ pizza for dinner. ate|eat</textarea>
             btn.classList.add("active");
         }
 
-        // --- ГЕНЕРАТОРЫ ЗВУКОВ ---
+        // --- ФУНКЦИЯ КОПИРОВАНИЯ В БУФЕР ОБМЕНА ---
+        function copyToClipboard(elementId, btn) {
+            const el = document.getElementById(elementId);
+            el.select();
+            el.setSelectionRange(0, 99999); // Для мобильных устройств
+            document.execCommand("copy");
+            
+            const originalText = btn.innerText;
+            const originalColor = btn.style.color;
+            const originalBorder = btn.style.borderColor;
+
+            btn.innerText = "✓ Скопировано!";
+            btn.classList.add("copied");
+            btn.style.color = "#000";
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove("copied");
+                btn.style.color = originalColor;
+                btn.style.borderColor = originalBorder;
+            }, 2000);
+        }
+
         function playSwoosh() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -331,7 +373,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             gameState.timeRemaining = parseInt(document.getElementById('fx_time').value) || 60;
             gameState.containersFilled = 0;
             gameState.direction = 1;
-            gameState.orbitPenalty = 0; // СБРОС ШТРАФА ОРБИТЫ ПРИ РЕСТАРТЕ
+            gameState.orbitPenalty = 0; 
             gameState.lastTime = performance.now();
             renderHUD();
             renderSpiders();
@@ -482,7 +524,6 @@ We ___ pizza for dinner. ate|eat</textarea>
                 gameState.spiders.push({
                     el: wrap, isDead: false, isAnimating: false,
                     angle: (Math.PI*2/spCount)*i, 
-                    // Радиус при спавне уже учитывает штраф!
                     radius: isBounce ? 0 : Math.max(30, parseFloat(document.getElementById('char_sp_orbit').value) - gameState.orbitPenalty)
                 });
             }
@@ -537,7 +578,6 @@ We ___ pizza for dinner. ate|eat</textarea>
                     gameState.lives--;
                     gameState.direction *= -1; 
                     
-                    // ШТРАФ! При ошибке пауки подбираются на 35 пикселей ближе (минимум до 30px)
                     gameState.orbitPenalty += 35;
                     
                     updateHeartsUI(); 
@@ -580,7 +620,6 @@ We ___ pizza for dinner. ate|eat</textarea>
                 const cx = 960 * (document.getElementById('char_ff_x').value / 100);
                 const cy = 540 * (document.getElementById('char_ff_y').value / 100);
                 
-                // РАССЧИТЫВАЕМ ОРБИТУ С УЧЕТОМ ШТРАФА ОШИБОК
                 const baseOrbit = parseFloat(document.getElementById('char_sp_orbit').value);
                 const targetOrbit = Math.max(30, baseOrbit - gameState.orbitPenalty);
                 
@@ -592,7 +631,6 @@ We ___ pizza for dinner. ate|eat</textarea>
                 gameState.spiders.forEach(s => {
                     if(s.isAnimating || s.isDead) return;
                     
-                    // Плавно сдвигаем пауков к новой орбите (создает крутой эффект стягивания кольца)
                     s.radius += (targetOrbit - s.radius) * 0.1; 
                     
                     s.angle += speed * (dt*60);
