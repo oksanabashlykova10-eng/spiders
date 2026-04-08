@@ -3,22 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 24 (Branding Update)</title>
+    <title>Spiders Game Editor - Версия 25 (Firefly Effects & Branding)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; overflow: hidden; }
         
-        /* ОБНОВЛЕННАЯ СТРУКТУРА ПАНЕЛИ РЕДАКТОРА */
         .sidebar { width: 500px; background-color: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); box-shadow: 2px 0 15px rgba(0,0,0,0.8); z-index: 10; }
         
-        /* БРЕНДИНГ: ШАПКА И ПОДВАЛ */
         .editor-header { display: flex; align-items: center; padding: 15px 20px; background: #111; border-bottom: 2px solid var(--primary); flex-shrink: 0; gap: 15px; box-shadow: 0 4px 15px rgba(0,255,204,0.15); }
         .editor-logo { width: 55px; height: 55px; object-fit: contain; filter: drop-shadow(0 0 8px var(--primary)); }
         .editor-title { margin: 0; font-family: 'Orbitron', sans-serif; font-size: 26px; color: #fff; text-transform: uppercase; text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 40px var(--primary); line-height: 1.1; }
-        .editor-subtitle { display: block; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 10px; color: #aaa; text-shadow: none; margin-top: 4px; letter-spacing: 0.5px; text-transform: none; }
-        .tab-contents-wrapper { flex: 1; overflow-y: auto; } /* Контейнер для прокрутки настроек */
+        .editor-subtitle { display: block; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 11px; color: #aaa; text-shadow: none; margin-top: 4px; letter-spacing: 0.5px; text-transform: none; }
+        .tab-contents-wrapper { flex: 1; overflow-y: auto; }
         .editor-footer { padding: 12px; text-align: center; font-size: 11px; color: #666; background: #0a0a0f; border-top: 1px solid #333; flex-shrink: 0; letter-spacing: 1px; }
 
         .tabs { display: flex; background: #1a1a20; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; flex-shrink: 0; }
@@ -58,7 +56,28 @@
         .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
         .modal-btn:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; }
 
-        /* МАГИЯ ИГРОВОГО РЕЖИМА И ПРОЗРАЧНОСТИ */
+        /* ЭФФЕКТЫ СВЕТЛЯЧКА */
+        @keyframes pulseGlow {
+            0% { filter: drop-shadow(0 0 10px var(--ff-glow)); }
+            100% { filter: drop-shadow(0 0 25px var(--ff-glow)) brightness(1.3); }
+        }
+        @keyframes flickerGlow {
+            0%, 100% { filter: drop-shadow(0 0 15px var(--ff-glow)) opacity(1); }
+            33% { filter: drop-shadow(0 0 5px var(--ff-glow)) opacity(0.6); }
+            66% { filter: drop-shadow(0 0 25px var(--ff-glow)) opacity(1); brightness(1.5); }
+        }
+        @keyframes glitchGlow {
+            0% { transform: translate(0) skew(0deg); filter: drop-shadow(0 0 15px var(--ff-glow)); }
+            20% { transform: translate(-3px, 2px) skew(-5deg); filter: drop-shadow(0 0 15px #ff00ff) drop-shadow(0 0 5px #00ffff); }
+            40% { transform: translate(3px, -2px) skew(5deg); filter: drop-shadow(0 0 15px #00ffff) drop-shadow(0 0 5px #ff00ff); }
+            60% { transform: translate(-2px, -3px) skew(-2deg); filter: drop-shadow(0 0 15px var(--ff-glow)); }
+            80% { transform: translate(2px, 3px) skew(2deg); filter: drop-shadow(0 0 15px var(--ff-glow)); }
+            100% { transform: translate(0) skew(0deg); filter: drop-shadow(0 0 15px var(--ff-glow)); }
+        }
+        .ff-effect-pulse { animation: pulseGlow 1.5s infinite alternate ease-in-out; }
+        .ff-effect-flicker { animation: flickerGlow 0.15s infinite; }
+        .ff-effect-glitch { animation: glitchGlow 0.3s infinite steps(2); }
+
         html.player-mode, body.player-mode { background: transparent !important; }
         body.player-mode .preview-area { background: transparent !important; }
         body.player-mode .sidebar { display: none !important; }
@@ -114,7 +133,17 @@ We ___ pizza for dinner. ate|eat</textarea>
                 <h3>Светлячок (Центр)</h3>
                 <div class="form-group flex-row"><label>Позиция X / Y:</label><input type="range" id="char_ff_x" min="0" max="100" value="25" oninput="renderHUD()"><input type="range" id="char_ff_y" min="0" max="100" value="50" oninput="renderHUD()"></div>
                 <div class="form-group flex-row"><label>Размер:</label><input type="range" id="char_ff_size" min="10" max="300" value="120" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Амплитуда парения:</label><input type="range" id="char_ff_hover" min="0" max="50" value="10" oninput="renderHUD()"></div>
                 <div class="form-group flex-row"><label>Цвет свечения:</label><input type="color" id="char_ff_glowColor" value="#ffff00" oninput="renderHUD()"></div>
+                <div class="form-group">
+                    <label>Эффект свечения:</label>
+                    <select id="char_ff_effect" onchange="renderHUD()">
+                        <option value="pulse" selected>Пульсация (Стандарт)</option>
+                        <option value="flicker">Мерцание</option>
+                        <option value="glitch">Глитч</option>
+                        <option value="none">Статичное свечение</option>
+                    </select>
+                </div>
 
                 <h3>Пауки (Враги)</h3>
                 <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
@@ -572,11 +601,24 @@ We ___ pizza for dinner. ate|eat</textarea>
             plate.innerHTML = `<div style="font-family:${document.getElementById('ui_plate_font').value}; color:${document.getElementById('ui_plate_textColor').value}; font-size:${document.getElementById('ui_plate_textSize').value}px; padding:0 20px; font-weight:bold;">${qData.q}</div>`;
             gLayer.appendChild(plate);
 
+            // Отрисовка светлячка (с разделением на обертку для полета и внутренний див для глитча)
             const ff_size = document.getElementById('char_ff_size').value;
-            const ff = document.createElement('div');
-            ff.id = 'preview-firefly';
-            ff.style.cssText = `position:absolute; width:${ff_size}px; height:${ff_size}px; left:calc(${document.getElementById('char_ff_x').value}% - ${ff_size/2}px); top:calc(${document.getElementById('char_ff_y').value}% - ${ff_size/2}px); background:url('${ASSETS.firefly}') center/contain no-repeat; filter: drop-shadow(0 0 15px ${document.getElementById('char_ff_glowColor').value}); z-index:10; pointer-events: none;`;
-            gLayer.appendChild(ff);
+            const ff_wrap = document.createElement('div');
+            ff_wrap.id = 'preview-firefly';
+            ff_wrap.style.cssText = `position:absolute; width:${ff_size}px; height:${ff_size}px; left:calc(${document.getElementById('char_ff_x').value}% - ${ff_size/2}px); top:calc(${document.getElementById('char_ff_y').value}% - ${ff_size/2}px); z-index:10; pointer-events: none;`;
+            
+            const ff_inner = document.createElement('div');
+            const glowColor = document.getElementById('char_ff_glowColor').value;
+            ff_inner.style.cssText = `width:100%; height:100%; background:url('${ASSETS.firefly}') center/contain no-repeat; --ff-glow: ${glowColor};`;
+            
+            const effect = document.getElementById('char_ff_effect') ? document.getElementById('char_ff_effect').value : 'pulse';
+            if(effect === 'pulse') ff_inner.className = 'ff-effect-pulse';
+            else if(effect === 'flicker') ff_inner.className = 'ff-effect-flicker';
+            else if(effect === 'glitch') ff_inner.className = 'ff-effect-glitch';
+            else ff_inner.style.filter = `drop-shadow(0 0 15px ${glowColor})`;
+
+            ff_wrap.appendChild(ff_inner);
+            gLayer.appendChild(ff_wrap);
 
             if(gameState.mode !== 'game') {
                 let modalData = {};
@@ -736,8 +778,10 @@ We ___ pizza for dinner. ate|eat</textarea>
                 const targetOrbit = Math.max(30, baseOrbit - gameState.orbitPenalty);
                 const speed = (parseFloat(document.getElementById('char_sp_speed').value) / 1000) * gameState.direction;
                 
+                // Чтение амплитуды парения из ползунка
+                const hoverAmp = document.getElementById('char_ff_hover') ? parseFloat(document.getElementById('char_ff_hover').value) : 10;
                 const ff = document.getElementById('preview-firefly');
-                if(ff) ff.style.transform = `translateY(${Math.sin(now/200) * 10}px)`;
+                if(ff) ff.style.transform = `translateY(${Math.sin(now/200) * hoverAmp}px)`;
 
                 gameState.spiders.forEach(s => {
                     if(s.isAnimating || s.isDead) return;
