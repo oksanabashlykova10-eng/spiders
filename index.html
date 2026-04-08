@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 20 (Sound Controls)</title>
+    <title>Spiders Game Editor - Версия 21 (Custom Sounds)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
@@ -129,7 +129,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             <div class="form-group" id="bg_image_group" style="display:none;">
                 <label>Ссылка на картинку (URL):</label>
                 <input type="text" id="bg_image_url" placeholder="https://..." oninput="renderHUD()">
-                <div class="hint-text" style="margin-top:5px;">Для работы у учеников вставьте прямую ссылку на изображение (например, скопированную из Genially).</div>
+                <div class="hint-text" style="margin-top:5px;">Для работы у учеников вставьте прямую ссылку на изображение.</div>
             </div>
 
             <h3>Позиции HUD (Сердечки и Таймер)</h3>
@@ -163,17 +163,36 @@ We ___ pizza for dinner. ate|eat</textarea>
             <div class="form-group flex-row"><label>Жизни (Кол-во):</label><input type="number" min="1" max="5" value="3" id="fx_lives" style="width: 60px;" oninput="fullGameReset()"></div>
             <div class="form-group flex-row"><label>Время (сек):</label><input type="number" min="10" max="300" value="60" id="fx_time" style="width: 80px;" oninput="fullGameReset()"></div>
             
-            <h3>Звуковые эффекты</h3>
+            <h3>Звуковые настройки</h3>
             <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
                 <input type="checkbox" id="fx_sound_enable" checked> 
                 <label style="margin:0; color:#00ffcc; font-weight: bold;">Включить звуки в игре</label>
             </div>
             <div class="form-group flex-row">
-                <label>Громкость:</label>
+                <label>Общая громкость:</label>
                 <input type="range" id="fx_volume" min="0" max="100" value="50">
             </div>
 
-            <h3>Анимации исчезновения</h3>
+            <h3 style="margin-top:25px;">Свои звуки (Ссылки на MP3/WAV)</h3>
+            <div class="hint-text">Чтобы звуки работали у учеников по ссылке, используйте прямые URL аудиофайлов. Если поле пустое — играет стандартный звук.</div>
+            <div class="form-group" style="margin-top:15px;">
+                <label style="color:#00ffcc;">ПРАВИЛЬНЫЙ ответ (URL):</label>
+                <input type="text" id="snd_url_right" placeholder="https://..." oninput="fullGameReset()">
+            </div>
+            <div class="form-group">
+                <label style="color:#ff4444;">ОШИБКА (URL):</label>
+                <input type="text" id="snd_url_wrong" placeholder="https://..." oninput="fullGameReset()">
+            </div>
+            <div class="form-group">
+                <label style="color:#00ffcc;">ПОБЕДА (URL):</label>
+                <input type="text" id="snd_url_win" placeholder="https://..." oninput="fullGameReset()">
+            </div>
+            <div class="form-group">
+                <label style="color:#ff4444;">ПОРАЖЕНИЕ (URL):</label>
+                <input type="text" id="snd_url_lose" placeholder="https://..." oninput="fullGameReset()">
+            </div>
+
+            <h3 style="margin-top:25px;">Анимации исчезновения</h3>
             <div class="form-group">
                 <label>Для ПРАВИЛЬНОГО паука:</label>
                 <select id="fx_animType_right" style="background:#222; border-color:var(--primary);">
@@ -299,7 +318,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             setTimeout(() => { btn.innerText = originalText; btn.classList.remove("copied"); }, 2000);
         }
 
-        // --- КОНТРОЛЬ ЗВУКА ---
+        // --- УМНЫЙ КОНТРОЛЬ ЗВУКОВ (URL ИЛИ СТАНДАРТ) ---
         const getVol = () => {
             const elEn = document.getElementById('fx_sound_enable');
             const elVol = document.getElementById('fx_volume');
@@ -307,7 +326,26 @@ We ___ pizza for dinner. ate|eat</textarea>
             return elVol ? (elVol.value / 100) : 0.5;
         };
 
-        function playSwoosh() {
+        function playSound(urlId, synthFallback) {
+            const vol = getVol(); 
+            if (vol <= 0) return;
+            
+            const urlEl = document.getElementById(urlId);
+            if (urlEl && urlEl.value.trim() !== '') {
+                try {
+                    let audio = new Audio(urlEl.value.trim());
+                    audio.volume = vol;
+                    audio.play().catch(e => synthFallback()); 
+                } catch(e) {
+                    synthFallback();
+                }
+            } else {
+                synthFallback();
+            }
+        }
+
+        // Базовые звуки-синтезаторы (если URL не указан)
+        function synthSwoosh() {
             const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -323,7 +361,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             } catch(e) {}
         }
 
-        function playError() {
+        function synthError() {
             const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -337,7 +375,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             } catch(e) {}
         }
 
-        function playWinSound() {
+        function synthWin() {
             const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -349,7 +387,7 @@ We ___ pizza for dinner. ate|eat</textarea>
             } catch(e) {}
         }
 
-        function playLoseSound() {
+        function synthLose() {
             const vol = getVol(); if (vol <= 0) return;
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -373,8 +411,9 @@ We ___ pizza for dinner. ate|eat</textarea>
             });
             
             if(mode === 'game') fullGameReset(); else renderHUD(); 
-            if (mode === 'win' && oldMode === 'game') playWinSound();
-            if (mode.startsWith('lose') && oldMode === 'game') playLoseSound();
+            
+            if (mode === 'win' && oldMode === 'game') playSound('snd_url_win', synthWin);
+            if (mode.startsWith('lose') && oldMode === 'game') playSound('snd_url_lose', synthLose);
         }
 
         function fullGameReset() {
@@ -575,7 +614,7 @@ We ___ pizza for dinner. ate|eat</textarea>
 
             requestAnimationFrame(() => {
                 if(isCorrect) {
-                    playSwoosh(); 
+                    playSound('snd_url_right', synthSwoosh);
                     const animType = document.getElementById('fx_animType_right').value;
                     const targetCont = document.getElementById('container_' + gameState.containersFilled);
                     
@@ -609,7 +648,7 @@ We ___ pizza for dinner. ate|eat</textarea>
                     }, 500);
 
                 } else {
-                    playError(); 
+                    playSound('snd_url_wrong', synthError); 
                     gameState.lives--;
                     gameState.direction *= -1; 
                     gameState.orbitPenalty += 35;
