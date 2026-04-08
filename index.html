@@ -3,19 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spiders Game Editor - Версия 23 (100% Transparent Genially)</title>
+    <title>Spiders Game Editor - Версия 24 (Branding Update)</title>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     <style>
         :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; overflow: hidden; }
-        .sidebar { width: 500px; background-color: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); box-shadow: 2px 0 15px rgba(0,0,0,0.8); z-index: 10; overflow-y: auto; }
+        
+        /* ОБНОВЛЕННАЯ СТРУКТУРА ПАНЕЛИ РЕДАКТОРА */
+        .sidebar { width: 500px; background-color: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); box-shadow: 2px 0 15px rgba(0,0,0,0.8); z-index: 10; }
+        
+        /* БРЕНДИНГ: ШАПКА И ПОДВАЛ */
+        .editor-header { display: flex; align-items: center; padding: 15px 20px; background: #111; border-bottom: 2px solid var(--primary); flex-shrink: 0; gap: 15px; box-shadow: 0 4px 15px rgba(0,255,204,0.15); }
+        .editor-logo { width: 55px; height: 55px; object-fit: contain; filter: drop-shadow(0 0 8px var(--primary)); }
+        .editor-title { margin: 0; font-family: 'Orbitron', sans-serif; font-size: 26px; color: #fff; text-transform: uppercase; text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 40px var(--primary); line-height: 1.1; }
+        .editor-subtitle { display: block; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 10px; color: #aaa; text-shadow: none; margin-top: 4px; letter-spacing: 0.5px; text-transform: none; }
+        .tab-contents-wrapper { flex: 1; overflow-y: auto; } /* Контейнер для прокрутки настроек */
+        .editor-footer { padding: 12px; text-align: center; font-size: 11px; color: #666; background: #0a0a0f; border-top: 1px solid #333; flex-shrink: 0; letter-spacing: 1px; }
+
         .tabs { display: flex; background: #1a1a20; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; flex-shrink: 0; }
         .tab-btn { flex: 1 1 30%; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; text-transform: uppercase; }
         .tab-btn:hover { color: white; } .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #22222b;}
         .tab-export-btn { color: #ff00cc; }
         
-        .tab-content { flex: 1; padding: 20px; display: none; } .tab-content.active { display: block; }
+        .tab-content { padding: 20px; display: none; } .tab-content.active { display: block; }
         .form-group { margin-bottom: 15px; } .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #bbb; }
         input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px; border-radius: 4px; background: #111; border: 1px solid #444; color: white; box-sizing: border-box; font-family: inherit; }
         select option { padding: 5px; background: #222; color: #fff; font-size: 16px;}
@@ -58,6 +69,11 @@
 </head>
 <body>
     <div class="sidebar">
+        <div class="editor-header">
+            <img src="https://img.genially.com/67961b32a116fb001568a75e/673752a5-8d4d-40d1-9b5f-f04ebd91a27c.png" alt="Emblem" class="editor-logo">
+            <h1 class="editor-title">SPIDERS<br><span class="editor-subtitle">(from My First Steps in English through Digital Interactive Platforms)</span></h1>
+        </div>
+
         <div class="tabs">
             <button class="tab-btn active" onclick="openTab(this, 'tab-questions')">Вопросы</button>
             <button class="tab-btn" onclick="openTab(this, 'tab-images')">Картинки</button>
@@ -67,172 +83,178 @@
             <button class="tab-btn tab-export-btn" onclick="openTab(this, 'tab-export')">Экспорт 🚀</button>
         </div>
 
-        <div id="tab-questions" class="tab-content active">
-            <div class="form-group" style="margin-top: 15px;">
-                <textarea id="q_input" rows="8" oninput="fullGameReset()">The explorer ___ a hidden diary in the cave. found|find|finded|finding
+        <div class="tab-contents-wrapper">
+            <div id="tab-questions" class="tab-content active">
+                <div class="form-group" style="margin-top: 15px;">
+                    <textarea id="q_input" rows="8" oninput="fullGameReset()">The explorer ___ a hidden diary in the cave. found|find|finded|finding
 She ___ to the store yesterday. went|go|goed
 They ___ the match. won|win|winned|winning
 He ___ a great job. did|do|done
 We ___ pizza for dinner. ate|eat</textarea>
-                <div id="q_warning" class="warning-text">⚠️ ОШИБКА: Вопросов меньше, чем контейнеров!</div>
+                    <div id="q_warning" class="warning-text">⚠️ ОШИБКА: Вопросов меньше, чем контейнеров!</div>
+                </div>
+                <h3>Ачивки (Контейнеры)</h3>
+                <div class="form-group flex-row"><label>Всего контейнеров:</label><input type="number" id="q_containers" min="4" max="12" value="5" style="width: 60px;" oninput="fullGameReset()"></div>
+                <div class="form-group flex-row"><label>Максимум в столбце:</label><input type="number" id="q_cont_rows" min="1" max="6" value="1" style="width: 60px;" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Размер контейнера:</label><input type="range" id="q_cont_size" min="20" max="100" value="45" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Позиция (X/Y):</label><input type="range" id="ui_cont_x" min="0" max="100" value="75" oninput="renderHUD()"><input type="range" id="ui_cont_y" min="0" max="100" value="20" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Цвет рамки:</label><input type="color" id="q_containerColor" value="#00ffcc" oninput="renderHUD()"><label>Неон:</label><input type="color" id="q_containerNeonColor" value="#00ffcc" oninput="renderHUD()"></div>
             </div>
-            <h3>Ачивки (Контейнеры)</h3>
-            <div class="form-group flex-row"><label>Всего контейнеров:</label><input type="number" id="q_containers" min="4" max="12" value="5" style="width: 60px;" oninput="fullGameReset()"></div>
-            <div class="form-group flex-row"><label>Максимум в столбце:</label><input type="number" id="q_cont_rows" min="1" max="6" value="1" style="width: 60px;" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Размер контейнера:</label><input type="range" id="q_cont_size" min="20" max="100" value="45" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Позиция (X/Y):</label><input type="range" id="ui_cont_x" min="0" max="100" value="75" oninput="renderHUD()"><input type="range" id="ui_cont_y" min="0" max="100" value="20" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Цвет рамки:</label><input type="color" id="q_containerColor" value="#00ffcc" oninput="renderHUD()"><label>Неон:</label><input type="color" id="q_containerNeonColor" value="#00ffcc" oninput="renderHUD()"></div>
+
+            <div id="tab-images" class="tab-content">
+                <h3>Игровые элементы</h3>
+                <div class="image-preset-box"><label>Светлячок</label><input type="file" id="file_firefly" accept="image/*"></div>
+                <div class="image-preset-box"><label>Паук</label><input type="file" id="file_spider" accept="image/*"></div>
+                <div class="image-preset-box"><label>Жизнь (Сердечко)</label><input type="file" id="file_heart" accept="image/*"></div>
+                <div class="image-preset-box"><label>Таймер</label><input type="file" id="file_timer" accept="image/*"></div>
+                <div class="image-preset-box"><label>Плашка вопроса</label><input type="file" id="file_plate" accept="image/*"></div>
+            </div>
+
+            <div id="tab-chars" class="tab-content">
+                <h3>Светлячок (Центр)</h3>
+                <div class="form-group flex-row"><label>Позиция X / Y:</label><input type="range" id="char_ff_x" min="0" max="100" value="25" oninput="renderHUD()"><input type="range" id="char_ff_y" min="0" max="100" value="50" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Размер:</label><input type="range" id="char_ff_size" min="10" max="300" value="120" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Цвет свечения:</label><input type="color" id="char_ff_glowColor" value="#ffff00" oninput="renderHUD()"></div>
+
+                <h3>Пауки (Враги)</h3>
+                <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
+                    <input type="checkbox" id="char_sp_bounce" checked> <label style="margin:0; color:var(--primary);">Отскок при появлении</label>
+                </div>
+                <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
+                    <input type="checkbox" id="char_sp_evade" checked onchange="renderSpiders()"> <label style="margin:0; font-weight:bold; color:#f39c12;">Убегать от курсора (Испуг)</label>
+                </div>
+                <div class="form-group"><label>Размер:</label><input type="range" id="char_sp_size" min="10" max="200" value="70" oninput="renderSpiders()"></div>
+                <div class="form-group flex-row"><label>Свечение (Цвет/Размер):</label><input type="color" id="char_sp_glowColor" value="#00ff00" oninput="renderSpiders()"><input type="range" id="char_sp_glowSize" min="0" max="50" value="15" oninput="renderSpiders()"></div>
+                <div class="form-group"><label>Скорость вращения:</label><input type="range" id="char_sp_speed" min="1" max="100" value="10"></div>
+                <div class="form-group"><label>Начальная орбита:</label><input type="range" id="char_sp_orbit" min="50" max="400" value="160"></div>
+                
+                <h3>Плашка ответов</h3>
+                <div class="form-group"><label>Шрифт ответа:</label><select id="char_plate_font" class="font-select" onchange="renderSpiders()"></select></div>
+                <div class="form-group flex-row"><label>Цвет текста:</label><input type="color" id="char_plate_textColor" value="#ffffff" oninput="renderSpiders()"><label>Размер:</label><input type="number" id="char_plate_textSize" value="16" style="width: 60px;" oninput="renderSpiders()"></div>
+            </div>
+
+            <div id="tab-texts" class="tab-content">
+                <h3>Общий фон игры</h3>
+                <div class="form-group">
+                    <label>Тип фона:</label>
+                    <select id="bg_type" onchange="updateBgUI()">
+                        <option value="transparent" selected>Прозрачный (для Genially)</option>
+                        <option value="color">Заливка цветом</option>
+                        <option value="image">Своя картинка (URL)</option>
+                    </select>
+                </div>
+                <div class="form-group flex-row" id="bg_color_group" style="display:none;">
+                    <label>Цвет:</label><input type="color" id="bg_color" value="#05080c" oninput="renderHUD()">
+                    <label>Прозрачность:</label><input type="range" id="bg_opacity" min="0" max="100" value="80" oninput="renderHUD()">
+                </div>
+                <div class="form-group" id="bg_image_group" style="display:none;">
+                    <label>Ссылка на картинку (URL):</label>
+                    <input type="text" id="bg_image_url" placeholder="https://..." oninput="renderHUD()">
+                    <div class="hint-text" style="margin-top:5px;">Для работы у учеников вставьте прямую ссылку на изображение.</div>
+                </div>
+
+                <h3>Позиции HUD (Сердечки и Таймер)</h3>
+                <div class="form-group flex-row"><label>Жизни (X/Y):</label><input type="range" id="ui_heart_x" min="0" max="100" value="70" oninput="renderHUD()"><input type="range" id="ui_heart_y" min="0" max="100" value="10" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Таймер (X/Y):</label><input type="range" id="ui_timer_x" min="0" max="100" value="85" oninput="renderHUD()"><input type="range" id="ui_timer_y" min="0" max="100" value="10" oninput="renderHUD()"></div>
+                
+                <h3>Главная плашка вопроса</h3>
+                <div class="form-group flex-row"><label>Цвет текста:</label><input type="color" id="ui_plate_textColor" value="#ffffff" oninput="renderHUD()"><label>Размер:</label><input type="number" id="ui_plate_textSize" value="16" style="width: 60px;" oninput="renderHUD()"></div>
+                <div class="form-group"><label>Шрифт вопроса:</label><select id="ui_plate_font" class="font-select" onchange="renderHUD()"></select></div>
+                <div class="form-group"><label>Тип фона:</label><select id="ui_plate_type" onchange="renderHUD()"><option value="image" selected>Своя картинка</option><option value="frame">Настраиваемая рамка</option></select></div>
+                <div class="form-group flex-row"><label>Размер (Ш/В):</label><input type="range" id="ui_plate_width" min="200" max="900" value="300" oninput="renderHUD()"><input type="range" id="ui_plate_height" min="50" max="300" value="100" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Позиция (X/Y):</label><input type="range" id="ui_plate_x" min="0" max="100" value="75" oninput="renderHUD()"><input type="range" id="ui_plate_y" min="0" max="100" value="85" oninput="renderHUD()"></div>
+
+                <h3>Начальный экран (Start)</h3>
+                <div class="form-group"><textarea id="txt_start" rows="2" oninput="renderHUD()">Help the firefly break free from the cyber spiders!</textarea></div>
+                <div class="form-group flex-row"><label>Цвет:</label><input type="color" id="txt_start_color" value="#ffffff" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_start_neonColor" value="#00ffcc" oninput="renderHUD()"></div>
+                
+                <h3>Экран Победы (Win)</h3>
+                <div class="form-group"><label>Текст:</label><input type="text" id="txt_win" value="The firefly is free!" oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Цвет:</label><input type="color" id="txt_win_color" value="#00ffcc" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_win_neonColor" value="#00ffcc" oninput="renderHUD()"></div>
+
+                <h3>Экран Поражения (Lose)</h3>
+                <div class="form-group"><label>Закончились жизни:</label><input type="text" id="txt_lose_health" value="The firefly has faded." oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Цвет (Жизни):</label><input type="color" id="txt_lose_color_h" value="#ff0000" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_lose_neon_h" value="#ff0000" oninput="renderHUD()"></div>
+                
+                <div class="form-group" style="margin-top:10px;"><label>Вышло время:</label><input type="text" id="txt_lose_time" value="You ran out of time." oninput="renderHUD()"></div>
+                <div class="form-group flex-row"><label>Цвет (Время):</label><input type="color" id="txt_lose_color_t" value="#ffa500" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_lose_neon_t" value="#ffa500" oninput="renderHUD()"></div>
+            </div>
+
+            <div id="tab-effects" class="tab-content">
+                <div class="form-group flex-row"><label>Жизни (Кол-во):</label><input type="number" min="1" max="5" value="3" id="fx_lives" style="width: 60px;" oninput="fullGameReset()"></div>
+                <div class="form-group flex-row"><label>Время (сек):</label><input type="number" min="10" max="300" value="60" id="fx_time" style="width: 80px;" oninput="fullGameReset()"></div>
+                
+                <h3>Звуковые настройки</h3>
+                <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
+                    <input type="checkbox" id="fx_sound_enable" checked> 
+                    <label style="margin:0; color:#00ffcc; font-weight: bold;">Включить звуки в игре</label>
+                </div>
+                <div class="form-group flex-row">
+                    <label>Общая громкость:</label>
+                    <input type="range" id="fx_volume" min="0" max="100" value="50">
+                </div>
+
+                <h3 style="margin-top:25px;">Свои звуки (Ссылки на MP3/WAV)</h3>
+                <div class="hint-text">Чтобы звуки работали по ссылке, используйте прямые URL. Если поле пустое — играет стандартный звук.</div>
+                <div class="form-group" style="margin-top:15px;">
+                    <label style="color:#00ffcc;">ПРАВИЛЬНЫЙ ответ (URL):</label>
+                    <input type="text" id="snd_url_right" placeholder="https://..." oninput="fullGameReset()">
+                </div>
+                <div class="form-group">
+                    <label style="color:#ff4444;">ОШИБКА (URL):</label>
+                    <input type="text" id="snd_url_wrong" placeholder="https://..." oninput="fullGameReset()">
+                </div>
+                <div class="form-group">
+                    <label style="color:#00ffcc;">ПОБЕДА (URL):</label>
+                    <input type="text" id="snd_url_win" placeholder="https://..." oninput="fullGameReset()">
+                </div>
+                <div class="form-group">
+                    <label style="color:#ff4444;">ПОРАЖЕНИЕ (URL):</label>
+                    <input type="text" id="snd_url_lose" placeholder="https://..." oninput="fullGameReset()">
+                </div>
+
+                <h3 style="margin-top:25px;">Анимации исчезновения</h3>
+                <div class="form-group">
+                    <label>Для ПРАВИЛЬНОГО паука:</label>
+                    <select id="fx_animType_right" style="background:#222; border-color:var(--primary);">
+                        <option value="soul">«Захват души» (Полет в контейнер)</option>
+                        <option value="explosion">Неоновый взрыв (На месте)</option>
+                        <option value="glitch">Телепортация через глитч</option>
+                        <option value="fade">Просто fade out</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Для НЕПРАВИЛЬНОГО паука:</label>
+                    <select id="fx_animType_wrong" style="background:#222; border-color:var(--danger);">
+                        <option value="fall">Падение вниз</option>
+                        <option value="explode">Ударный взрыв</option>
+                        <option value="fade">Сжатие (Исчезновение)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="tab-export" class="tab-content">
+                <h3>Вставка в Genially (Iframe)</h3>
+                <div class="hint-text" style="color: #00ffcc; border-left-color: #00ffcc;">Код сжат с помощью LZ-алгоритма. Ссылка стала короче в 3 раза специально для Genially! Вставьте через <b>Insert -> Other -> Iframe</b>.</div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text; background: #05080c; color: #00ffcc; border: 1px solid #00ffcc;"></textarea>
+                    <button class="copy-btn" onclick="copyToClipboard('export_iframe', this)">Скопировать код iframe</button>
+                </div>
+
+                <h3 style="margin-top: 30px;">Альтернатива: Отдельный файл</h3>
+                <div class="hint-text" style="color: #ffaa00; border-left-color: #ffaa00;">Если Genially всё ещё жалуется на длину (из-за огромного количества вопросов), просто скачайте игру отдельным файлом, закиньте её к себе на GitHub и вставляйте прямую короткую ссылку на него!</div>
+                <button class="copy-btn" style="background: var(--primary); color: #000; margin-top: 10px;" onclick="downloadHTML()">💾 Скачать HTML-файл игры</button>
+
+                <h3 style="margin-top: 30px;">Сгенерированная ссылка (URL)</h3>
+                <div class="form-group" style="margin-top: 15px;">
+                    <input type="text" id="export_link" readonly style="cursor: text;">
+                    <button class="copy-btn" style="color: #ff00cc; border-color: #ff00cc;" onclick="copyToClipboard('export_link', this)">Скопировать ссылку</button>
+                </div>
+            </div>
         </div>
 
-        <div id="tab-images" class="tab-content">
-            <h3>Игровые элементы</h3>
-            <div class="image-preset-box"><label>Светлячок</label><input type="file" id="file_firefly" accept="image/*"></div>
-            <div class="image-preset-box"><label>Паук</label><input type="file" id="file_spider" accept="image/*"></div>
-            <div class="image-preset-box"><label>Жизнь (Сердечко)</label><input type="file" id="file_heart" accept="image/*"></div>
-            <div class="image-preset-box"><label>Таймер</label><input type="file" id="file_timer" accept="image/*"></div>
-            <div class="image-preset-box"><label>Плашка вопроса</label><input type="file" id="file_plate" accept="image/*"></div>
-        </div>
-
-        <div id="tab-chars" class="tab-content">
-            <h3>Светлячок (Центр)</h3>
-            <div class="form-group flex-row"><label>Позиция X / Y:</label><input type="range" id="char_ff_x" min="0" max="100" value="25" oninput="renderHUD()"><input type="range" id="char_ff_y" min="0" max="100" value="50" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Размер:</label><input type="range" id="char_ff_size" min="10" max="300" value="120" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Цвет свечения:</label><input type="color" id="char_ff_glowColor" value="#ffff00" oninput="renderHUD()"></div>
-
-            <h3>Пауки (Враги)</h3>
-            <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
-                <input type="checkbox" id="char_sp_bounce" checked> <label style="margin:0; color:var(--primary);">Отскок при появлении</label>
-            </div>
-            <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
-                <input type="checkbox" id="char_sp_evade" checked onchange="renderSpiders()"> <label style="margin:0; font-weight:bold; color:#f39c12;">Убегать от курсора (Испуг)</label>
-            </div>
-            <div class="form-group"><label>Размер:</label><input type="range" id="char_sp_size" min="10" max="200" value="70" oninput="renderSpiders()"></div>
-            <div class="form-group flex-row"><label>Свечение (Цвет/Размер):</label><input type="color" id="char_sp_glowColor" value="#00ff00" oninput="renderSpiders()"><input type="range" id="char_sp_glowSize" min="0" max="50" value="15" oninput="renderSpiders()"></div>
-            <div class="form-group"><label>Скорость вращения:</label><input type="range" id="char_sp_speed" min="1" max="100" value="10"></div>
-            <div class="form-group"><label>Начальная орбита:</label><input type="range" id="char_sp_orbit" min="50" max="400" value="160"></div>
-            
-            <h3>Плашка ответов</h3>
-            <div class="form-group"><label>Шрифт ответа:</label><select id="char_plate_font" class="font-select" onchange="renderSpiders()"></select></div>
-            <div class="form-group flex-row"><label>Цвет текста:</label><input type="color" id="char_plate_textColor" value="#ffffff" oninput="renderSpiders()"><label>Размер:</label><input type="number" id="char_plate_textSize" value="16" style="width: 60px;" oninput="renderSpiders()"></div>
-        </div>
-
-        <div id="tab-texts" class="tab-content">
-            <h3>Общий фон игры</h3>
-            <div class="form-group">
-                <label>Тип фона:</label>
-                <select id="bg_type" onchange="updateBgUI()">
-                    <option value="transparent" selected>Прозрачный (для Genially)</option>
-                    <option value="color">Заливка цветом</option>
-                    <option value="image">Своя картинка (URL)</option>
-                </select>
-            </div>
-            <div class="form-group flex-row" id="bg_color_group" style="display:none;">
-                <label>Цвет:</label><input type="color" id="bg_color" value="#05080c" oninput="renderHUD()">
-                <label>Прозрачность:</label><input type="range" id="bg_opacity" min="0" max="100" value="80" oninput="renderHUD()">
-            </div>
-            <div class="form-group" id="bg_image_group" style="display:none;">
-                <label>Ссылка на картинку (URL):</label>
-                <input type="text" id="bg_image_url" placeholder="https://..." oninput="renderHUD()">
-                <div class="hint-text" style="margin-top:5px;">Для работы у учеников вставьте прямую ссылку на изображение.</div>
-            </div>
-
-            <h3>Позиции HUD (Сердечки и Таймер)</h3>
-            <div class="form-group flex-row"><label>Жизни (X/Y):</label><input type="range" id="ui_heart_x" min="0" max="100" value="70" oninput="renderHUD()"><input type="range" id="ui_heart_y" min="0" max="100" value="10" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Таймер (X/Y):</label><input type="range" id="ui_timer_x" min="0" max="100" value="85" oninput="renderHUD()"><input type="range" id="ui_timer_y" min="0" max="100" value="10" oninput="renderHUD()"></div>
-            
-            <h3>Главная плашка вопроса</h3>
-            <div class="form-group flex-row"><label>Цвет текста:</label><input type="color" id="ui_plate_textColor" value="#ffffff" oninput="renderHUD()"><label>Размер:</label><input type="number" id="ui_plate_textSize" value="16" style="width: 60px;" oninput="renderHUD()"></div>
-            <div class="form-group"><label>Шрифт вопроса:</label><select id="ui_plate_font" class="font-select" onchange="renderHUD()"></select></div>
-            <div class="form-group"><label>Тип фона:</label><select id="ui_plate_type" onchange="renderHUD()"><option value="image" selected>Своя картинка</option><option value="frame">Настраиваемая рамка</option></select></div>
-            <div class="form-group flex-row"><label>Размер (Ш/В):</label><input type="range" id="ui_plate_width" min="200" max="900" value="300" oninput="renderHUD()"><input type="range" id="ui_plate_height" min="50" max="300" value="100" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Позиция (X/Y):</label><input type="range" id="ui_plate_x" min="0" max="100" value="75" oninput="renderHUD()"><input type="range" id="ui_plate_y" min="0" max="100" value="85" oninput="renderHUD()"></div>
-
-            <h3>Начальный экран (Start)</h3>
-            <div class="form-group"><textarea id="txt_start" rows="2" oninput="renderHUD()">Help the firefly break free from the cyber spiders!</textarea></div>
-            <div class="form-group flex-row"><label>Цвет:</label><input type="color" id="txt_start_color" value="#ffffff" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_start_neonColor" value="#00ffcc" oninput="renderHUD()"></div>
-            
-            <h3>Экран Победы (Win)</h3>
-            <div class="form-group"><label>Текст:</label><input type="text" id="txt_win" value="The firefly is free!" oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Цвет:</label><input type="color" id="txt_win_color" value="#00ffcc" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_win_neonColor" value="#00ffcc" oninput="renderHUD()"></div>
-
-            <h3>Экран Поражения (Lose)</h3>
-            <div class="form-group"><label>Закончились жизни:</label><input type="text" id="txt_lose_health" value="The firefly has faded." oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Цвет (Жизни):</label><input type="color" id="txt_lose_color_h" value="#ff0000" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_lose_neon_h" value="#ff0000" oninput="renderHUD()"></div>
-            
-            <div class="form-group" style="margin-top:10px;"><label>Вышло время:</label><input type="text" id="txt_lose_time" value="You ran out of time." oninput="renderHUD()"></div>
-            <div class="form-group flex-row"><label>Цвет (Время):</label><input type="color" id="txt_lose_color_t" value="#ffa500" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_lose_neon_t" value="#ffa500" oninput="renderHUD()"></div>
-        </div>
-
-        <div id="tab-effects" class="tab-content">
-            <div class="form-group flex-row"><label>Жизни (Кол-во):</label><input type="number" min="1" max="5" value="3" id="fx_lives" style="width: 60px;" oninput="fullGameReset()"></div>
-            <div class="form-group flex-row"><label>Время (сек):</label><input type="number" min="10" max="300" value="60" id="fx_time" style="width: 80px;" oninput="fullGameReset()"></div>
-            
-            <h3>Звуковые настройки</h3>
-            <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
-                <input type="checkbox" id="fx_sound_enable" checked> 
-                <label style="margin:0; color:#00ffcc; font-weight: bold;">Включить звуки в игре</label>
-            </div>
-            <div class="form-group flex-row">
-                <label>Общая громкость:</label>
-                <input type="range" id="fx_volume" min="0" max="100" value="50">
-            </div>
-
-            <h3 style="margin-top:25px;">Свои звуки (Ссылки на MP3/WAV)</h3>
-            <div class="hint-text">Чтобы звуки работали по ссылке, используйте прямые URL. Если поле пустое — играет стандартный звук.</div>
-            <div class="form-group" style="margin-top:15px;">
-                <label style="color:#00ffcc;">ПРАВИЛЬНЫЙ ответ (URL):</label>
-                <input type="text" id="snd_url_right" placeholder="https://..." oninput="fullGameReset()">
-            </div>
-            <div class="form-group">
-                <label style="color:#ff4444;">ОШИБКА (URL):</label>
-                <input type="text" id="snd_url_wrong" placeholder="https://..." oninput="fullGameReset()">
-            </div>
-            <div class="form-group">
-                <label style="color:#00ffcc;">ПОБЕДА (URL):</label>
-                <input type="text" id="snd_url_win" placeholder="https://..." oninput="fullGameReset()">
-            </div>
-            <div class="form-group">
-                <label style="color:#ff4444;">ПОРАЖЕНИЕ (URL):</label>
-                <input type="text" id="snd_url_lose" placeholder="https://..." oninput="fullGameReset()">
-            </div>
-
-            <h3 style="margin-top:25px;">Анимации исчезновения</h3>
-            <div class="form-group">
-                <label>Для ПРАВИЛЬНОГО паука:</label>
-                <select id="fx_animType_right" style="background:#222; border-color:var(--primary);">
-                    <option value="soul">«Захват души» (Полет в контейнер)</option>
-                    <option value="explosion">Неоновый взрыв (На месте)</option>
-                    <option value="glitch">Телепортация через глитч</option>
-                    <option value="fade">Просто fade out</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Для НЕПРАВИЛЬНОГО паука:</label>
-                <select id="fx_animType_wrong" style="background:#222; border-color:var(--danger);">
-                    <option value="fall">Падение вниз</option>
-                    <option value="explode">Ударный взрыв</option>
-                    <option value="fade">Сжатие (Исчезновение)</option>
-                </select>
-            </div>
-        </div>
-
-        <div id="tab-export" class="tab-content">
-            <h3>Вставка в Genially (Iframe)</h3>
-            <div class="hint-text" style="color: #00ffcc; border-left-color: #00ffcc;">Код сжат с помощью LZ-алгоритма. Ссылка стала короче в 3 раза специально для Genially! Вставьте через <b>Insert -> Other -> Iframe</b>.</div>
-            <div class="form-group" style="margin-top: 15px;">
-                <textarea id="export_iframe" rows="4" readonly style="font-size: 11px; cursor: text; background: #05080c; color: #00ffcc; border: 1px solid #00ffcc;"></textarea>
-                <button class="copy-btn" onclick="copyToClipboard('export_iframe', this)">Скопировать код iframe</button>
-            </div>
-
-            <h3 style="margin-top: 30px;">Альтернатива: Отдельный файл</h3>
-            <div class="hint-text" style="color: #ffaa00; border-left-color: #ffaa00;">Если Genially всё ещё жалуется на длину (из-за огромного количества вопросов), просто скачайте игру отдельным файлом, закиньте её к себе на GitHub и вставляйте прямую короткую ссылку на него!</div>
-            <button class="copy-btn" style="background: var(--primary); color: #000; margin-top: 10px;" onclick="downloadHTML()">💾 Скачать HTML-файл игры</button>
-
-            <h3 style="margin-top: 30px;">Сгенерированная ссылка (URL)</h3>
-            <div class="form-group" style="margin-top: 15px;">
-                <input type="text" id="export_link" readonly style="cursor: text;">
-                <button class="copy-btn" style="color: #ff00cc; border-color: #ff00cc;" onclick="copyToClipboard('export_link', this)">Скопировать ссылку</button>
-            </div>
+        <div class="editor-footer">
+            &copy; Все права принадлежат Башлыковой Оксане Михайловне 2026
         </div>
     </div>
 
@@ -294,7 +316,7 @@ We ___ pizza for dinner. ate|eat</textarea>
 
         function getConfigObject() {
             let config = {};
-            document.querySelectorAll('.sidebar input, .sidebar textarea, .sidebar select').forEach(el => {
+            document.querySelectorAll('.tab-contents-wrapper input, .tab-contents-wrapper textarea, .tab-contents-wrapper select').forEach(el => {
                 if (el.id && !el.id.startsWith('file_')) {
                     config[el.id] = el.type === 'checkbox' ? el.checked : el.value;
                 }
@@ -309,8 +331,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             let finalUrl = baseUrl + "?zplay=" + encoded;
             
             document.getElementById('export_link').value = finalUrl;
-            
-            // ДОБАВЛЕНО: background: transparent; и allowtransparency="true"
             document.getElementById('export_iframe').value = `<iframe src="${finalUrl}" style="width: 100%; height: 100%; border: none; background: transparent;" allowtransparency="true" allow="autoplay; fullscreen" allowfullscreen="true"></iframe>`;
         }
 
@@ -747,7 +767,6 @@ We ___ pizza for dinner. ate|eat</textarea>
             }
             
             if (config) {
-                // ПРИМЕНЯЕМ РЕЖИМ ИГРОКА КО ВСЕМУ ДОКУМЕНТУ
                 document.documentElement.classList.add('player-mode');
                 document.body.classList.add('player-mode'); 
                 
