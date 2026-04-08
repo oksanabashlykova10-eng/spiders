@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiders Game Editor - Версия 16 (Fonts & Shrinking Orbit)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel+Decorative:wght@400;700&family=Comfortaa:wght@400;700&family=Cormorant:wght@400;700&family=Exo+2:wght@400;700&family=Kelly+Slab&family=Montserrat:wght@400;700&family=Orbitron:wght@400;700&family=Playfair+Display:wght@400;700&family=Special+Elite&family=MedievalSharp&family=Metamorphous&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-color: #1a1a20; --panel-bg: #22222b; --primary: #00ffcc; --danger: #ff4444; --text-color: #f5f5f5; --border-color: #444; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-color); color: var(--text-color); display: flex; overflow: hidden; }
+        .sidebar { width: 500px; background-color: var(--panel-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border-color); box-shadow: 2px 0 15px rgba(0,0,0,0.8); z-index: 10; overflow-y: auto; }
+        .tabs { display: flex; background: #1a1a20; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; flex-shrink: 0; }
+        .tab-btn { flex: 1 1 30%; padding: 12px 5px; background: none; border: none; color: #888; cursor: pointer; font-weight: bold; font-size: 11px; transition: 0.3s; text-transform: uppercase; }
+        .tab-btn:hover { color: white; } .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: #22222b;}
+        .tab-content { flex: 1; padding: 20px; display: none; } .tab-content.active { display: block; }
+        .form-group { margin-bottom: 15px; } .form-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #bbb; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 8px; border-radius: 4px; background: #111; border: 1px solid #444; color: white; box-sizing: border-box; font-family: inherit; }
+        select option { padding: 5px; background: #222; color: #fff; font-size: 16px;}
+        textarea { resize: vertical; font-family: monospace; }
+        .flex-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 10px;}
+        .flex-row input[type="color"] { width: 40px; height: 30px; padding: 0; border: none; cursor: pointer; background: transparent;}
+        input[type="range"] { width: 100%; cursor: pointer; accent-color: var(--primary);}
+        .image-preset-box { border: 1px dashed #555; padding: 10px; text-align: center; border-radius: 5px; margin-bottom: 10px; background: #1a1a20; }
+        h3 { font-size: 15px; color: var(--primary); border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px;}
+        .hint-text { font-size: 12px; color: #aaa; background: #111; padding: 10px; border-radius: 4px; border-left: 3px solid var(--primary);}
+        
+        .warning-text { color: white; font-size: 14px; font-weight: bold; margin-top: 10px; display: none; background: var(--danger); padding: 10px; border-radius: 4px; text-align: center; box-shadow: 0 0 10px var(--danger);}
+        
+        .preview-area { flex: 1; display: flex; flex-direction: column; background: #0a0a0f; position: relative; }
+        .preview-header { padding: 15px; background: #1a1a20; display: flex; gap: 10px; justify-content: center; border-bottom: 1px solid var(--border-color); z-index: 200; flex-shrink: 0;}
+        .preview-btn { background: #222; color: #888; border: 1px solid #444; padding: 8px 15px; border-radius: 20px; cursor: pointer; transition: 0.2s; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+        .preview-btn:hover, .preview-btn.active { background: rgba(0, 255, 204, 0.1); color: var(--primary); border-color: var(--primary); }
+        .game-frame-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .game-frame { width: 960px; height: 540px; background: #05080c; border: 2px solid #333; border-radius: 10px; position: relative; overflow: hidden; box-shadow: 0 0 30px rgba(0,255,204,0.1); }
+        
+        .spider-wrapper { cursor: pointer; }
+        .spider-evade:hover { transform: scale(0.8) translate(15px, 15px) !important; filter: brightness(1.5); z-index: 50 !important; }
+
+        .modal-btn { transition: all 0.3s ease; pointer-events: auto; }
+        .modal-btn:hover { 
+            background: rgba(255,255,255,0.1) !important; 
+            transform: scale(1.05); 
+            box-shadow: 0 0 20px var(--neon-color), inset 0 0 10px var(--neon-color) !important; 
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(this, 'tab-questions')">Вопросы</button>
+            <button class="tab-btn" onclick="openTab(this, 'tab-images')">Картинки</button>
+            <button class="tab-btn" onclick="openTab(this, 'tab-chars')">Персонажи</button>
+            <button class="tab-btn" onclick="openTab(this, 'tab-texts')">Интерфейс</button>
+            <button class="tab-btn" onclick="openTab(this, 'tab-effects')">Эффекты/Звук</button>
+        </div>
+
+        <div id="tab-questions" class="tab-content active">
+            <div class="form-group" style="margin-top: 15px;">
+                <textarea id="q_input" rows="8" oninput="fullGameReset()">The explorer ___ a hidden diary in the cave. found|find|finded|finding
+She ___ to the store yesterday. went|go|goed
+They ___ the match. won|win|winned|winning
+He ___ a great job. did|do|done
+We ___ pizza for dinner. ate|eat</textarea>
+                <div id="q_warning" class="warning-text">⚠️ ОШИБКА: Вопросов меньше, чем контейнеров!</div>
+            </div>
+            <h3>Ачивки (Контейнеры)</h3>
+            <div class="form-group flex-row"><label>Всего контейнеров:</label><input type="number" id="q_containers" min="4" max="12" value="5" style="width: 60px;" oninput="fullGameReset()"></div>
+            <div class="form-group flex-row"><label>Максимум в столбце:</label><input type="number" id="q_cont_rows" min="1" max="6" value="1" style="width: 60px;" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Размер контейнера:</label><input type="range" id="q_cont_size" min="20" max="100" value="45" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Позиция (X/Y):</label><input type="range" id="ui_cont_x" min="0" max="100" value="75" oninput="renderHUD()"><input type="range" id="ui_cont_y" min="0" max="100" value="20" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Цвет рамки:</label><input type="color" id="q_containerColor" value="#00ffcc" oninput="renderHUD()"><label>Неон:</label><input type="color" id="q_containerNeonColor" value="#00ffcc" oninput="renderHUD()"></div>
+        </div>
+
+        <div id="tab-images" class="tab-content">
+            <h3>Игровые элементы</h3>
+            <div class="image-preset-box"><label>Светлячок</label><input type="file" id="file_firefly" accept="image/*"></div>
+            <div class="image-preset-box"><label>Паук</label><input type="file" id="file_spider" accept="image/*"></div>
+            <div class="image-preset-box"><label>Жизнь (Сердечко)</label><input type="file" id="file_heart" accept="image/*"></div>
+            <div class="image-preset-box"><label>Таймер</label><input type="file" id="file_timer" accept="image/*"></div>
+            <div class="image-preset-box"><label>Плашка вопроса</label><input type="file" id="file_plate" accept="image/*"></div>
+        </div>
+
+        <div id="tab-chars" class="tab-content">
+            <h3>Светлячок (Центр)</h3>
+            <div class="form-group flex-row"><label>Позиция X / Y:</label><input type="range" id="char_ff_x" min="0" max="100" value="25" oninput="renderHUD()"><input type="range" id="char_ff_y" min="0" max="100" value="50" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Размер:</label><input type="range" id="char_ff_size" min="10" max="300" value="120" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Цвет свечения:</label><input type="color" id="char_ff_glowColor" value="#ffff00" oninput="renderHUD()"></div>
+
+            <h3>Пауки (Враги)</h3>
+            <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
+                <input type="checkbox" id="char_sp_bounce" checked> <label style="margin:0; color:var(--primary);">Отскок при появлении</label>
+            </div>
+            <div class="form-group flex-row" style="justify-content: flex-start; gap: 10px;">
+                <input type="checkbox" id="char_sp_evade" checked onchange="renderSpiders()"> <label style="margin:0; font-weight:bold; color:#f39c12;">Убегать от курсора (Испуг)</label>
+            </div>
+            <div class="form-group"><label>Размер:</label><input type="range" id="char_sp_size" min="10" max="200" value="70" oninput="renderSpiders()"></div>
+            <div class="form-group flex-row"><label>Свечение (Цвет/Размер):</label><input type="color" id="char_sp_glowColor" value="#00ff00" oninput="renderSpiders()"><input type="range" id="char_sp_glowSize" min="0" max="50" value="15" oninput="renderSpiders()"></div>
+            <div class="form-group"><label>Скорость вращения:</label><input type="range" id="char_sp_speed" min="1" max="100" value="10"></div>
+            <div class="form-group"><label>Начальная орбита:</label><input type="range" id="char_sp_orbit" min="50" max="400" value="160"></div>
+            
+            <h3>Плашка ответов</h3>
+            <div class="form-group"><label>Шрифт ответа:</label><select id="char_plate_font" class="font-select" onchange="renderSpiders()"></select></div>
+            <div class="form-group flex-row"><label>Цвет текста:</label><input type="color" id="char_plate_textColor" value="#ffffff" oninput="renderSpiders()"><label>Размер:</label><input type="number" id="char_plate_textSize" value="16" style="width: 60px;" oninput="renderSpiders()"></div>
+        </div>
+
+        <div id="tab-texts" class="tab-content">
+            <h3>Позиции HUD (Сердечки и Таймер)</h3>
+            <div class="form-group flex-row"><label>Жизни (X/Y):</label><input type="range" id="ui_heart_x" min="0" max="100" value="70" oninput="renderHUD()"><input type="range" id="ui_heart_y" min="0" max="100" value="10" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Таймер (X/Y):</label><input type="range" id="ui_timer_x" min="0" max="100" value="85" oninput="renderHUD()"><input type="range" id="ui_timer_y" min="0" max="100" value="10" oninput="renderHUD()"></div>
+            
+            <h3>Главная плашка вопроса</h3>
+            <div class="form-group flex-row"><label>Цвет текста:</label><input type="color" id="ui_plate_textColor" value="#ffffff" oninput="renderHUD()"><label>Размер:</label><input type="number" id="ui_plate_textSize" value="16" style="width: 60px;" oninput="renderHUD()"></div>
+            <div class="form-group"><label>Шрифт вопроса:</label><select id="ui_plate_font" class="font-select" onchange="renderHUD()"></select></div>
+            <div class="form-group"><label>Тип фона:</label><select id="ui_plate_type" onchange="renderHUD()"><option value="image" selected>Своя картинка</option><option value="frame">Настраиваемая рамка</option></select></div>
+            <div class="form-group flex-row"><label>Размер (Ш/В):</label><input type="range" id="ui_plate_width" min="200" max="900" value="300" oninput="renderHUD()"><input type="range" id="ui_plate_height" min="50" max="300" value="100" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Позиция (X/Y):</label><input type="range" id="ui_plate_x" min="0" max="100" value="75" oninput="renderHUD()"><input type="range" id="ui_plate_y" min="0" max="100" value="85" oninput="renderHUD()"></div>
+
+            <h3>Начальный экран (Start)</h3>
+            <div class="form-group"><textarea id="txt_start" rows="2" oninput="renderHUD()">Help the firefly break free from the cyber spiders!</textarea></div>
+            <div class="form-group flex-row"><label>Цвет:</label><input type="color" id="txt_start_color" value="#ffffff" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_start_neonColor" value="#00ffcc" oninput="renderHUD()"></div>
+            
+            <h3>Экран Победы (Win)</h3>
+            <div class="form-group"><label>Текст:</label><input type="text" id="txt_win" value="The firefly is free!" oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Цвет:</label><input type="color" id="txt_win_color" value="#00ffcc" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_win_neonColor" value="#00ffcc" oninput="renderHUD()"></div>
+
+            <h3>Экран Поражения (Lose)</h3>
+            <div class="form-group"><label>Закончились жизни:</label><input type="text" id="txt_lose_health" value="The firefly has faded." oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Цвет (Жизни):</label><input type="color" id="txt_lose_color_h" value="#ff0000" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_lose_neon_h" value="#ff0000" oninput="renderHUD()"></div>
+            
+            <div class="form-group" style="margin-top:10px;"><label>Вышло время:</label><input type="text" id="txt_lose_time" value="You ran out of time." oninput="renderHUD()"></div>
+            <div class="form-group flex-row"><label>Цвет (Время):</label><input type="color" id="txt_lose_color_t" value="#ffa500" oninput="renderHUD()"><label>Неон:</label><input type="color" id="txt_lose_neon_t" value="#ffa500" oninput="renderHUD()"></div>
+        </div>
+
+        <div id="tab-effects" class="tab-content">
+            <div class="form-group flex-row"><label>Жизни (Кол-во):</label><input type="number" min="1" max="5" value="3" id="fx_lives" style="width: 60px;" oninput="fullGameReset()"></div>
+            <div class="form-group flex-row"><label>Время (сек):</label><input type="number" min="10" max="300" value="60" id="fx_time" style="width: 80px;" oninput="fullGameReset()"></div>
+            
+            <h3>Анимации исчезновения</h3>
+            <div class="form-group">
+                <label>Для ПРАВИЛЬНОГО паука:</label>
+                <select id="fx_animType_right" style="background:#222; border-color:var(--primary);">
+                    <option value="soul">«Захват души» (Полет в контейнер)</option>
+                    <option value="explosion">Неоновый взрыв (На месте)</option>
+                    <option value="glitch">Телепортация через глитч</option>
+                    <option value="fade">Просто fade out</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Для НЕПРАВИЛЬНОГО паука:</label>
+                <select id="fx_animType_wrong" style="background:#222; border-color:var(--danger);">
+                    <option value="fall">Падение вниз</option>
+                    <option value="explode">Ударный взрыв</option>
+                    <option value="fade">Сжатие (Исчезновение)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-area">
+        <div class="preview-header">
+            <button class="preview-btn active" data-mode="game" onclick="setPreviewMode('game')">Играть (Тест)</button>
+            <button class="preview-btn" data-mode="start" onclick="setPreviewMode('start')">Экран Старта</button>
+            <button class="preview-btn" data-mode="win" onclick="setPreviewMode('win')">Экран Победы</button>
+            <button class="preview-btn" data-mode="lose_health" onclick="setPreviewMode('lose_health')">Поражение (Жизни)</button>
+            <button class="preview-btn" data-mode="lose_time" onclick="setPreviewMode('lose_time')">Поражение (Время)</button>
+        </div>
+        <div class="game-frame-container">
+            <div class="game-frame" id="game-frame">
+                <div id="game-layer"></div>
+                <div id="modal-layer" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ASSETS = {
+            firefly: "https://img.genially.com/67961b32a116fb001568a75e/5233536e-2060-483e-ad27-bdca318b0bd0.png",
+            spider: "https://img.genially.com/67961b32a116fb001568a75e/80682d6d-90e5-4c82-bcf6-91080df9b839.png",
+            plate: "https://img.genially.com/67961b32a116fb001568a75e/ff555d6c-9d16-4cf1-a03b-e5f91d0b6877.png",
+            heart: "https://img.genially.com/67961b32a116fb001568a75e/ef543c55-17e2-4bb0-8820-824ce9ef32a3.png",
+            timer: "https://img.genially.com/67961b32a116fb001568a75e/23778d05-b6ba-40e3-bda3-d568bf98556e.png"
+        };
+
+        // ВЕРНУЛ ВСЕ ШРИФТЫ В ВЫПАДАЮЩИЕ СПИСКИ
+        const fontOptions = `
+            <option value="Arial, sans-serif" style="font-family: Arial, sans-serif;">Arial (Стандарт)</option>
+            <option value="'Orbitron', sans-serif" style="font-family: 'Orbitron', sans-serif;" selected>Orbitron (Техно)</option>
+            <option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif;">Exo 2 (Космос)</option>
+            <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif;">Montserrat (Строгий)</option>
+            <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif;">Bebas Neue</option>
+            <option value="'Cinzel Decorative', serif" style="font-family: 'Cinzel Decorative', serif;">Cinzel Decorative</option>
+            <option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive;">Comfortaa</option>
+            <option value="'Cormorant', serif" style="font-family: 'Cormorant', serif;">Cormorant</option>
+            <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive;">Kelly Slab</option>
+            <option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif;">Playfair Display</option>
+            <option value="'Special Elite', cursive" style="font-family: 'Special Elite', cursive;">Special Elite</option>
+            <option value="'MedievalSharp', cursive" style="font-family: 'MedievalSharp', cursive;">MedievalSharp</option>
+            <option value="'Metamorphous', cursive" style="font-family: 'Metamorphous', cursive;">Metamorphous</option>
+            <option value="Papyrus, fantasy" style="font-family: Papyrus, fantasy;">Ancient Maya (Papyrus)</option>
+        `;
+        document.querySelectorAll('.font-select').forEach(sel => sel.innerHTML = fontOptions);
+
+        let gameState = {
+            mode: 'game', questions: [], currentQ: 0, lives: 3, 
+            timeRemaining: 60, lastTime: performance.now(),
+            spiders: [], direction: 1, containersFilled: 0, loseReason: 'health',
+            orbitPenalty: 0 // <--- НОВЫЙ ПАРАМЕТР ШТРАФА ОРБИТЫ
+        };
+
+        function openTab(btn, tabName) {
+            document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
+            document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+            document.getElementById(tabName).style.display = "block";
+            btn.classList.add("active");
+        }
+
+        // --- ГЕНЕРАТОРЫ ЗВУКОВ ---
+        function playSwoosh() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const bufferSize = ctx.sampleRate * 0.4; 
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; 
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(400, ctx.currentTime);
+                filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.1); 
+                filter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
+
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(1.5, ctx.currentTime + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+                noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+                noise.start(); noise.stop(ctx.currentTime + 0.4);
+            } catch(e) {}
+        }
+
+        function playError() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc1.type = 'square'; osc2.type = 'sawtooth';
+                osc1.frequency.setValueAtTime(100, ctx.currentTime);
+                osc1.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.2);
+                osc2.frequency.setValueAtTime(110, ctx.currentTime);
+                osc2.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+                osc1.start(); osc2.start();
+                osc1.stop(ctx.currentTime + 0.2); osc2.stop(ctx.currentTime + 0.2);
+            } catch(e) {}
+        }
+
+        function playWinSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.connect(gain); gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+                osc.frequency.setValueAtTime(261.63, now); // C4
+                osc.frequency.setValueAtTime(329.63, now + 0.1); // E4
+                osc.frequency.setValueAtTime(392.00, now + 0.2); // G4
+                osc.frequency.setValueAtTime(523.25, now + 0.3); // C5
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                gain.gain.setValueAtTime(0.3, now + 0.4);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc.start(now); osc.stop(now + 0.8);
+            } catch(e) {}
+        }
+
+        function playLoseSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.connect(gain); gain.connect(ctx.destination);
+                const now = ctx.currentTime;
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.8);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.1);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                osc.start(now); osc.stop(now + 0.8);
+            } catch(e) {}
+        }
+
+        function formatTime(sec) {
+            let m = Math.floor(sec / 60);
+            let s = Math.floor(sec % 60);
+            return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+        }
+
+        function setPreviewMode(mode) {
+            const oldMode = gameState.mode;
+            gameState.mode = mode;
+            if(mode.startsWith('lose_')) gameState.loseReason = mode.split('_')[1];
+            
+            document.querySelectorAll('.preview-btn').forEach(b => {
+                if(b.dataset.mode === mode) b.classList.add('active'); else b.classList.remove('active');
+            });
+            
+            if(mode === 'game') fullGameReset();
+            else renderHUD(); 
+
+            if (mode === 'win' && oldMode === 'game') playWinSound();
+            if (mode.startsWith('lose') && oldMode === 'game') playLoseSound();
+        }
+
+        function fullGameReset() {
+            const textLines = document.getElementById('q_input').value.split('\n').filter(l=>l.trim() !== '');
+            gameState.questions = textLines.map(line => {
+                const parts = line.split('.');
+                return { q: parts[0] + " ___ .", ans: (parts[1] || "").split('|') };
+            });
+            gameState.currentQ = 0;
+            gameState.lives = parseInt(document.getElementById('fx_lives').value) || 3;
+            gameState.timeRemaining = parseInt(document.getElementById('fx_time').value) || 60;
+            gameState.containersFilled = 0;
+            gameState.direction = 1;
+            gameState.orbitPenalty = 0; // СБРОС ШТРАФА ОРБИТЫ ПРИ РЕСТАРТЕ
+            gameState.lastTime = performance.now();
+            renderHUD();
+            renderSpiders();
+        }
+
+        function updateHeartsUI() {
+            for(let i=0; i < parseInt(document.getElementById('fx_lives').value); i++) {
+                const h = document.getElementById('heart_' + i);
+                if(h) {
+                    if(i >= gameState.lives) h.style.filter = 'grayscale(1) opacity(0.3)';
+                    else h.style.filter = 'drop-shadow(0 0 5px #ff0044)';
+                }
+            }
+        }
+
+        function renderHUD() {
+            const gLayer = document.getElementById('game-layer');
+            const mLayer = document.getElementById('modal-layer');
+            gLayer.innerHTML = ''; mLayer.innerHTML = '';
+            
+            const textLines = document.getElementById('q_input').value.split('\n').filter(l=>l.trim() !== '');
+            const cCount = parseInt(document.getElementById('q_containers').value) || 0;
+            document.getElementById('q_warning').style.display = (textLines.length < cCount && textLines.length > 0) ? 'block' : 'none';
+
+            if(gameState.mode === 'game') {
+                mLayer.style.display = 'none';
+                gLayer.style.filter = 'none';
+            } else {
+                mLayer.style.display = 'flex';
+                gLayer.style.filter = 'blur(8px)';
+            }
+
+            const cRows = parseInt(document.getElementById('q_cont_rows').value) || 1;
+            const cSize = document.getElementById('q_cont_size').value;
+            const cNeon = document.getElementById('q_containerNeonColor').value;
+            const cBorder = document.getElementById('q_containerColor').value;
+            
+            const contWrap = document.createElement('div');
+            contWrap.style.cssText = `position:absolute; display:grid; grid-template-rows: repeat(${cRows}, 1fr); grid-auto-flow: column; gap:10px; left:${document.getElementById('ui_cont_x').value}%; top:${document.getElementById('ui_cont_y').value}%; transform:translate(-50%, -50%);`;
+            
+            for(let i=0; i<cCount; i++) {
+                let box = document.createElement('div');
+                box.id = 'container_' + i;
+                box.style.cssText = `width:${cSize}px; height:${cSize}px; border:2px solid ${cBorder}; border-radius:10px; background:rgba(0,0,0,0.4); display:flex; justify-content:center; align-items:center; transition: all 0.3s;`;
+                if(i < gameState.containersFilled) {
+                    box.innerHTML = `<img src="${ASSETS.spider}" style="width:80%; height:80%; object-fit:contain; filter:drop-shadow(0 0 5px ${cNeon});">`;
+                    box.style.boxShadow = `0 0 10px ${cNeon}`;
+                    box.style.borderColor = cNeon;
+                }
+                contWrap.appendChild(box);
+            }
+            gLayer.appendChild(contWrap);
+
+            const heartWrap = document.createElement('div');
+            heartWrap.style.cssText = `position:absolute; display:flex; gap:5px; left:${document.getElementById('ui_heart_x').value}%; top:${document.getElementById('ui_heart_y').value}%; transform:translate(-50%, -50%);`;
+            for(let i=0; i<parseInt(document.getElementById('fx_lives').value); i++) {
+                let h = document.createElement('div');
+                h.id = 'heart_' + i;
+                h.style.cssText = `width:35px; height:35px; background:url('${ASSETS.heart}') center/contain no-repeat; transition: 0.3s;`;
+                heartWrap.appendChild(h);
+            }
+            gLayer.appendChild(heartWrap);
+            updateHeartsUI();
+
+            const timerDiv = document.createElement('div');
+            timerDiv.style.cssText = `position:absolute; display:flex; align-items:center; gap:10px; left:${document.getElementById('ui_timer_x').value}%; top:${document.getElementById('ui_timer_y').value}%; transform:translate(-50%, -50%); font-family:'Orbitron'; font-size:24px; color:white;`;
+            timerDiv.innerHTML = `<div style="width:40px; height:40px; background:url('${ASSETS.timer}') center/contain no-repeat; filter: drop-shadow(0 0 5px #00ffcc);"></div><span id="hud-timer-text">${formatTime(gameState.timeRemaining)}</span>`;
+            gLayer.appendChild(timerDiv);
+
+            const qData = gameState.questions[gameState.currentQ] || {q: "Вопрос ___"};
+            const pl_w = document.getElementById('ui_plate_width').value;
+            const pl_h = document.getElementById('ui_plate_height').value;
+            const plate = document.createElement('div');
+            plate.style.cssText = `position:absolute; width:${pl_w}px; height:${pl_h}px; left:calc(${document.getElementById('ui_plate_x').value}% - ${pl_w/2}px); top:calc(${document.getElementById('ui_plate_y').value}% - ${pl_h/2}px); display:flex; justify-content:center; align-items:center; text-align:center; z-index:5;`;
+            if(document.getElementById('ui_plate_type').value === 'image') {
+                plate.style.background = `url('${ASSETS.plate}') center/100% 100% no-repeat`;
+            } else {
+                plate.style.background = '#05080c'; plate.style.border = `2px solid #00ffcc`; plate.style.borderRadius = '15px';
+            }
+            plate.innerHTML = `<div style="font-family:${document.getElementById('ui_plate_font').value}; color:${document.getElementById('ui_plate_textColor').value}; font-size:${document.getElementById('ui_plate_textSize').value}px; padding:0 20px; font-weight:bold;">${qData.q}</div>`;
+            gLayer.appendChild(plate);
+
+            const ff_size = document.getElementById('char_ff_size').value;
+            const ff = document.createElement('div');
+            ff.id = 'preview-firefly';
+            ff.style.cssText = `position:absolute; width:${ff_size}px; height:${ff_size}px; left:calc(${document.getElementById('char_ff_x').value}% - ${ff_size/2}px); top:calc(${document.getElementById('char_ff_y').value}% - ${ff_size/2}px); background:url('${ASSETS.firefly}') center/contain no-repeat; filter: drop-shadow(0 0 15px ${document.getElementById('char_ff_glowColor').value}); z-index:10;`;
+            gLayer.appendChild(ff);
+
+            if(gameState.mode !== 'game') {
+                let modalData = {};
+                if(gameState.mode === 'start') {
+                    modalData = { text: document.getElementById('txt_start').value, btn: 'START GAME', color: document.getElementById('txt_start_color').value, neon: document.getElementById('txt_start_neonColor').value };
+                } else if(gameState.mode === 'win') {
+                    modalData = { text: document.getElementById('txt_win').value, btn: 'PLAY AGAIN', color: document.getElementById('txt_win_color').value, neon: document.getElementById('txt_win_neonColor').value };
+                } else if(gameState.mode.startsWith('lose')) {
+                    if(gameState.loseReason === 'health') {
+                        modalData = { text: document.getElementById('txt_lose_health').value, btn: 'RETRY', color: document.getElementById('txt_lose_color_h').value, neon: document.getElementById('txt_lose_neon_h').value };
+                    } else {
+                        modalData = { text: document.getElementById('txt_lose_time').value, btn: 'RETRY', color: document.getElementById('txt_lose_color_t').value, neon: document.getElementById('txt_lose_neon_t').value };
+                    }
+                }
+
+                mLayer.style.cssText = `position:absolute; width:100%; height:100%; top:0; left:0; background:rgba(0,0,0,0.6); z-index:200; display:flex; justify-content:center; align-items:center; pointer-events: auto;`;
+                const modal = document.createElement('div');
+                modal.style.cssText = `background:rgba(10,10,15,0.9); border:2px solid ${modalData.neon}; border-radius:20px; padding:30px 50px; text-align:center; box-shadow: 0 0 25px ${modalData.neon}; max-width: 450px; display:flex; flex-direction:column; gap:25px; align-items:center; backdrop-filter: blur(5px);`;
+                modal.innerHTML = `
+                    <div style="font-family:'Orbitron'; color:${modalData.color}; font-size:32px; text-transform:uppercase; text-shadow: 0 0 10px ${modalData.neon};">${modalData.text.replace(/\n/g, '<br>')}</div>
+                    <button class="modal-btn" style="--neon-color: ${modalData.neon}; background:transparent; color:white; border:2px solid ${modalData.neon}; padding:12px 30px; font-size:20px; font-family:'Orbitron'; border-radius:30px; cursor:pointer; font-weight:bold; box-shadow: 0 0 10px ${modalData.neon};" onclick="setPreviewMode('game')">${modalData.btn}</button>
+                `;
+                mLayer.appendChild(modal);
+            }
+        }
+
+        function renderSpiders() {
+            if(gameState.mode !== 'game') return;
+            gameState.spiders.forEach(s => s.el.remove());
+            gameState.spiders = [];
+
+            const qData = gameState.questions[gameState.currentQ];
+            if(!qData || !qData.ans || qData.ans.length === 0) return;
+
+            const gLayer = document.getElementById('game-layer');
+            const spCount = qData.ans.length;
+            const spSize = document.getElementById('char_sp_size').value;
+            const isBounce = document.getElementById('char_sp_bounce').checked;
+            const evadeEffect = document.getElementById('char_sp_evade').checked ? 'spider-evade' : '';
+            
+            let answers = qData.ans.map((txt, i) => ({txt, isCorrect: i===0}));
+            answers.sort(() => Math.random() - 0.5);
+
+            for(let i=0; i<spCount; i++) {
+                let wrap = document.createElement('div');
+                wrap.className = `spider-wrapper ${evadeEffect}`;
+                wrap.style.cssText = `position:absolute; display:flex; flex-direction:column; align-items:center; z-index:20;`;
+                
+                let sp = document.createElement('div');
+                sp.style.cssText = `width:${spSize}px; height:${spSize}px; background:url('${ASSETS.spider}') center/contain no-repeat; filter: drop-shadow(0 0 ${document.getElementById('char_sp_glowSize').value}px ${document.getElementById('char_sp_glowColor').value});`;
+                
+                let label = document.createElement('div');
+                label.innerText = answers[i].txt;
+                label.style.cssText = `font-family:${document.getElementById('char_plate_font').value}; color:${document.getElementById('char_plate_textColor').value}; font-size:${document.getElementById('char_plate_textSize').value}px; background:rgba(0,0,0,0.8); padding:4px 12px; border-radius:15px; border:1px solid #444; margin-top:-10px; font-weight:bold; white-space:nowrap;`;
+                
+                wrap.appendChild(sp); wrap.appendChild(label);
+                gLayer.appendChild(wrap);
+
+                wrap.onclick = () => handleSpiderClick(i, answers[i].isCorrect);
+
+                gameState.spiders.push({
+                    el: wrap, isDead: false, isAnimating: false,
+                    angle: (Math.PI*2/spCount)*i, 
+                    // Радиус при спавне уже учитывает штраф!
+                    radius: isBounce ? 0 : Math.max(30, parseFloat(document.getElementById('char_sp_orbit').value) - gameState.orbitPenalty)
+                });
+            }
+        }
+
+        function handleSpiderClick(index, isCorrect) {
+            if(gameState.mode !== 'game') return;
+            const sp = gameState.spiders[index];
+            if(!sp || sp.isAnimating || sp.isDead) return;
+            
+            sp.isAnimating = true;
+            sp.el.style.transition = 'all 0.5s ease-out';
+            sp.el.style.pointerEvents = 'none'; 
+
+            requestAnimationFrame(() => {
+                if(isCorrect) {
+                    playSwoosh(); 
+                    const animType = document.getElementById('fx_animType_right').value;
+                    const targetCont = document.getElementById('container_' + gameState.containersFilled);
+                    
+                    if(animType === 'soul' && targetCont) {
+                        const rect = targetCont.getBoundingClientRect();
+                        const frameRect = document.getElementById('game-frame').getBoundingClientRect();
+                        sp.el.style.left = (rect.left - frameRect.left + rect.width/2) + 'px';
+                        sp.el.style.top = (rect.top - frameRect.top + rect.height/2) + 'px';
+                        sp.el.style.transform = 'translate(-50%, -50%) scale(0.1)';
+                        sp.el.style.opacity = '0.5';
+                    } else if(animType === 'explosion') {
+                        sp.el.style.transform = 'translate(-50%, -50%) scale(2.5)';
+                        sp.el.style.filter = 'brightness(2) drop-shadow(0 0 30px #fff)';
+                        sp.el.style.opacity = '0';
+                    } else if(animType === 'glitch') {
+                        sp.el.style.transform = 'translate(-50%, -50%) scaleX(4) scaleY(0.05)';
+                        sp.el.style.opacity = '0';
+                    } else {
+                        sp.el.style.transform = 'translate(-50%, -50%) scale(0.8)';
+                        sp.el.style.opacity = '0';
+                    }
+
+                    setTimeout(() => {
+                        gameState.containersFilled++;
+                        gameState.currentQ++;
+                        if(gameState.currentQ >= gameState.questions.length || gameState.containersFilled >= document.getElementById('q_containers').value) {
+                            setPreviewMode('win'); 
+                        } else {
+                            renderHUD(); renderSpiders();
+                        }
+                    }, 500);
+
+                } else {
+                    playError(); 
+                    gameState.lives--;
+                    gameState.direction *= -1; 
+                    
+                    // ШТРАФ! При ошибке пауки подбираются на 35 пикселей ближе (минимум до 30px)
+                    gameState.orbitPenalty += 35;
+                    
+                    updateHeartsUI(); 
+                    sp.isDead = true; 
+                    
+                    const failAnim = document.getElementById('fx_animType_wrong').value;
+                    if(failAnim === 'fall') {
+                        sp.el.style.transform = 'translate(-50%, -50%) translateY(400px) rotate(180deg)';
+                    } else if(failAnim === 'explode') {
+                        sp.el.style.transform = 'translate(-50%, -50%) scale(2.5)';
+                        sp.el.style.filter = 'brightness(2) drop-shadow(0 0 30px #f00)';
+                    } else {
+                        sp.el.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                    }
+                    sp.el.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        if(gameState.lives <= 0) setPreviewMode('lose_health');
+                    }, 500);
+                }
+            });
+        }
+
+        function gameLoop() {
+            let now = performance.now();
+            let dt = (now - gameState.lastTime) / 1000;
+            if (dt > 1) dt = 1; 
+            gameState.lastTime = now;
+
+            if(gameState.mode === 'game') {
+                gameState.timeRemaining -= dt;
+                if(gameState.timeRemaining <= 0) {
+                    gameState.timeRemaining = 0;
+                    setPreviewMode('lose_time');
+                }
+                const timeStr = formatTime(gameState.timeRemaining);
+                const timerEl = document.getElementById('hud-timer-text');
+                if(timerEl && timerEl.innerText !== timeStr) timerEl.innerText = timeStr;
+
+                const cx = 960 * (document.getElementById('char_ff_x').value / 100);
+                const cy = 540 * (document.getElementById('char_ff_y').value / 100);
+                
+                // РАССЧИТЫВАЕМ ОРБИТУ С УЧЕТОМ ШТРАФА ОШИБОК
+                const baseOrbit = parseFloat(document.getElementById('char_sp_orbit').value);
+                const targetOrbit = Math.max(30, baseOrbit - gameState.orbitPenalty);
+                
+                const speed = (parseFloat(document.getElementById('char_sp_speed').value) / 1000) * gameState.direction;
+                
+                const ff = document.getElementById('preview-firefly');
+                if(ff) ff.style.transform = `translateY(${Math.sin(now/200) * 10}px)`;
+
+                gameState.spiders.forEach(s => {
+                    if(s.isAnimating || s.isDead) return;
+                    
+                    // Плавно сдвигаем пауков к новой орбите (создает крутой эффект стягивания кольца)
+                    s.radius += (targetOrbit - s.radius) * 0.1; 
+                    
+                    s.angle += speed * (dt*60);
+                    s.el.style.left = (cx + s.radius * Math.cos(s.angle)) + 'px';
+                    s.el.style.top = (cy + s.radius * Math.sin(s.angle)) + 'px';
+                    s.el.style.transform = `translate(-50%, -50%) translateY(${Math.sin((now/150) + s.angle)*5}px)`;
+                });
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = () => { fullGameReset(); gameLoop(); };
+    </script>
+</body>
+</html>
